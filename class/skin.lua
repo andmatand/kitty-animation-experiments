@@ -7,6 +7,8 @@ function Skin:new(animationTemplateGroup)
     for key, template in pairs(animationTemplateGroup) do
         self.animations[key] = Animation(template)
     end
+
+    self:set_anim('default')
 end
 
 function Skin:set_anim(key)
@@ -20,6 +22,11 @@ end
 
 function Skin:get_quad()
     return self.currentAnimation:get_quad()
+end
+
+function Skin:get_height()
+    local w, h = select(3, self:get_quad():getViewport())
+    return h
 end
 
 function Skin:get_width()
