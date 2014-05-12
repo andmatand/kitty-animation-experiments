@@ -10,6 +10,8 @@ function Timer:update(dt)
 
     if self.value <= 0 then
         return true
+    else
+        return false
     end
 end
 

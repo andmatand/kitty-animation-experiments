@@ -19,6 +19,7 @@ function Animation:is_stopped()
 end
 
 function Animation:set_frame_index(index)
+    self:play()
     self.currentFrame = {index = index,
                          quad = self.frames[index].quad,
                          timer = Timer(self.frames[index].delay)}
@@ -28,7 +29,7 @@ function Animation:rewind()
     self:set_frame_index(1)
 end
 
-function Animation:start()
+function Animation:play()
     self.isStopped = false
 end
 
@@ -51,7 +52,7 @@ function Animation:stop()
 end
 
 function Animation:update(dt)
-    if #self.frames > 1 and not self.isStopped then
+    if not self.isStopped then
         if self.currentFrame.timer:update(dt) then
             self:step_forward()
         end
