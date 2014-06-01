@@ -1,5 +1,6 @@
 Object = require('util.oo')
 require('util.anim')
+require('util.graphics')
 require('class.animation')
 require('class.camera')
 require('class.kitty')
@@ -10,7 +11,7 @@ function love.load()
     DEBUG = true
     love.mouse.setVisible(false)
     love.graphics.setDefaultFilter('nearest', 'nearest')
-    love.graphics.setBackgroundColor(26, 17, 26)
+    set_fullscreen(false)
 
     SPRITE_IMAGE = love.graphics.newImage('asset/sprites.png')
     ANIM_TEMPLATES = load_animation_templates()
@@ -31,7 +32,7 @@ function love.load()
         platforms[i].position = {x = love.math.random(1, 22),
                                  y = y}
         platforms[i].size = {w = love.math.random(5, 30),
-                             h = love.math.random(5, BASE_SCREEN_H - y)}
+                             h = love.math.random(4, 8)}
         --platforms[i].color = {love.math.random(20, 100),
         --                      love.math.random(20, 100),
         --                      love.math.random(20, 50)}
@@ -152,7 +153,7 @@ function love.keypressed(key)
             soundSources.jump:play()
         end
     elseif key == 'f11' then
-        love.window.setFullscreen(not love.window.getFullscreen(), 'desktop')
+        set_fullscreen(not love.window.getFullscreen())
     elseif key == 'f5' then
         love.load()
     elseif key == 'escape' then
@@ -257,10 +258,25 @@ function draw_ground()
 end
 
 function love.draw()
+    love.graphics.setBackgroundColor(0, 0, 0)
+    love.graphics.clear()
+
+    scale_and_letterbox()
+    love.graphics.setScissor(GRAPHICS_X,
+                             GRAPHICS_Y,
+                             BASE_SCREEN_W * GRAPHICS_SCALE,
+                             BASE_SCREEN_H * GRAPHICS_SCALE)
+    love.graphics.translate(GRAPHICS_X, GRAPHICS_Y)
+
+    love.graphics.setBackgroundColor(26, 17, 26)
+    love.graphics.clear()
+
     love.graphics.scale(GRAPHICS_SCALE)
     camera:translate()
 
     draw_ground()
     draw_platforms()
     draw_sprites()
+
+    love.graphics.setScissor()
 end
