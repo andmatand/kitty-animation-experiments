@@ -5,4 +5,6 @@ function love.conf(t)
     t.window.width = BASE_SCREEN_W * GRAPHICS_SCALE
     t.window.height = BASE_SCREEN_H * GRAPHICS_SCALE
     t.window.title = 'kitty'
+
+    AXIS_THRESHOLD = .3
 end

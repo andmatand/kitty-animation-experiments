@@ -6,6 +6,7 @@ require('class.camera')
 require('class.kitty')
 require('class.skin')
 require('class.sprite')
+require('class.virtualgamepad')
 
 function love.load()
     DEBUG = true
@@ -24,6 +25,8 @@ function love.load()
     camera = Camera()
     sprites = {}
     sprites[1] = Kitty()
+    VIRTUAL_GAMEPAD = VirtualGamepad(sprites[1].inputBuffer)
+    sprites[1].virtualGamepad = VIRTUAL_GAMEPAD
 
     platforms = {}
     local y = 10
@@ -44,12 +47,41 @@ function love.load()
     platforms[3].color = COLORS.green
 
     KEYS = {}
+    KEYS.up = 'w'
+    KEYS.down = 's'
+    KEYS.left = 'a'
+    KEYS.right = 'd'
     KEYS.jump = 'k'
+
+    BUTTONS = {}
+    BUTTONS.jump = 'a'
+end
+
+function love.joystickadded(joystick)
+    if joystick:isGamepad() then
+        GAMEPAD = joystick
+    end
+end
+
+function love.gamepadaxis(joystick, axis, value)
+    if joystick ~= GAMEPAD then return end
+
+    if axis == 'leftx' then
+        if value <= -AXIS_THRESHOLD then
+        end
+    end
+end
+
+function love.gamepadpressed(joystick, button)
+    VIRTUAL_GAMEPAD:gamepadpressed(joystick, button)
 end
 
 function love.update(dt)
     --require('lume.lurker').update()
-    player_input(dt)
+
+    for i = 1, #sprites do
+        sprites[i]:process_input(dt)
+    end
 
     do_physics()
 
@@ -77,7 +109,7 @@ function do_physics()
     for i = 1, #sprites do
         local sprite = sprites[i]
 
-        sprite.position.x = sprites[i].position.x + sprite.velocity.x
+        sprite.position.x = sprite.position.x + sprite.velocity.x
 
         -- Collide
         local groundY = 32
@@ -135,61 +167,14 @@ function do_physics()
 end
 
 function love.keypressed(key)
-    local player = sprites[1]
-    local velocityDelta = {y = 2}
-
-    -- If the jump button is pressed
-    if key == KEYS.jump and player.onPlatform then
-        player.onPlatform = false
-
-        if love.keyboard.isDown('s') or love.keyboard.isDown('down') then
-            player.fallThroughPlatform = true
-        else
-            player.velocity.y = -velocityDelta.y
-            player.jump = {boost = 9}
-            player.moved = true
-
-            soundSources.jump:stop()
-            soundSources.jump:play()
-        end
-    elseif key == 'f11' then
+    if key == 'f11' then
         set_fullscreen(not love.window.getFullscreen())
     elseif key == 'f5' then
         love.load()
     elseif key == 'escape' then
         love.event.quit()
-    end
-end
-
-function player_input(dt)
-    local player = sprites[1]
-    local velocityDelta = {x = 40 * dt}
-    local moved = false
-
-    -- If the jump button is being held
-    if love.keyboard.isDown(KEYS.jump) and player.jump then
-        if player.jump.boost > 0 then
-            player.velocity.y = player.velocity.y -.35
-            player.jump.boost = player.jump.boost - 1
-        end
-    end
-
-    if love.keyboard.isDown('right') or love.keyboard.isDown('d') then
-        if player.dir == 2 then
-            player.velocity.x = player.velocity.x + velocityDelta.x
-            --player.velocity.x = velocityDelta.x
-            player.moved = true
-        else
-            player.dir = 2
-        end
-    elseif love.keyboard.isDown('left') or love.keyboard.isDown('a') then
-        if player.dir == 4 then
-            player.velocity.x = player.velocity.x - velocityDelta.x
-            --player.velocity.x = -velocityDelta.x
-            player.moved = true
-        else
-            player.dir = 4
-        end
+    else
+        VIRTUAL_GAMEPAD:keypressed(key)
     end
 end
 
