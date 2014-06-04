@@ -73,7 +73,11 @@ function love.gamepadaxis(joystick, axis, value)
 end
 
 function love.gamepadpressed(joystick, button)
-    VIRTUAL_GAMEPAD:gamepadpressed(joystick, button)
+    if GAMEPAD then
+        VIRTUAL_GAMEPAD:gamepadpressed(joystick, button)
+    else
+        love.joystickadded(joystick)
+    end
 end
 
 function love.update(dt)
@@ -174,6 +178,9 @@ function love.keypressed(key)
     elseif key == 'escape' then
         love.event.quit()
     else
+        -- Disable gamepad input
+        GAMEPAD = nil
+        
         VIRTUAL_GAMEPAD:keypressed(key)
     end
 end
