@@ -44,8 +44,10 @@ function Camera:translate()
     --                            self.box.h)
     --end
 
-    love.graphics.translate(math.floor(-self.box.x + self.boxOffset.x),
-                            math.floor(-self.box.y + self.boxOffset.y))
+    --love.graphics.translate(math.floor(-self.box.x + self.boxOffset.x),
+    --                        math.floor(-self.box.y + self.boxOffset.y))
+    love.graphics.translate(-self.box.x + self.boxOffset.x,
+                            -self.box.y + self.boxOffset.y)
 end
 
 function Camera:get_position()

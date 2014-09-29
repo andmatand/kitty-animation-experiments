@@ -24,8 +24,8 @@ end
 function Sprite:is_on_platform(testPosition, platform)
     local box = self:get_collision_box(testPosition)
 
-    if box.y + box.h == platform.position.y + 1 and
-       box.x + box.w - 1 > platform.position.x and
+    if box.y + box.h == platform.position.y and
+       box.x + (box.w - 1) > platform.position.x and
        box.x < platform.position.x + platform.size.w then
         return true
     else

@@ -35,3 +35,8 @@ function set_fullscreen(enable)
 
     scale_and_letterbox()
 end
+
+function align_to_grid(position)
+    return {x = math.floor((position.x * GRAPHICS_SCALE) / GRAPHICS_SCALE),
+            y = math.floor((position.y * GRAPHICS_SCALE) / GRAPHICS_SCALE)}
+end

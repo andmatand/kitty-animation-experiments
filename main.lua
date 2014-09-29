@@ -19,8 +19,10 @@ function love.load()
 
     soundSources = {jump = love.audio.newSource('asset/jump.wav')}
 
-    COLORS = {}
-    COLORS.green = {142, 165, 20}
+    PALETTE = {}
+    PALETTE[1] = {142, 165, 20}
+    PALETTE[2] = {0, 123, 150}
+    PALETTE[3] = {157, 100, 19}
 
     camera = Camera()
     sprites = {}
@@ -28,23 +30,26 @@ function love.load()
     VIRTUAL_GAMEPAD = VirtualGamepad(sprites[1].inputBuffer)
     sprites[1].virtualGamepad = VIRTUAL_GAMEPAD
 
-    platforms = {}
+    room = {}
+    room.platforms = {}
+    local platforms = room.platforms
+
     local y = 10
-    for i = 1, 3 do
+    local i = 0
+    while y < BASE_SCREEN_H - 10 do
+        i = i + 1
+
         platforms[i] = {}
-        platforms[i].position = {x = love.math.random(1, 22),
+        platforms[i].position = {x = love.math.random(-100, 100),
                                  y = y}
         platforms[i].size = {w = love.math.random(5, 30),
                              h = love.math.random(4, 8)}
-        --platforms[i].color = {love.math.random(20, 100),
-        --                      love.math.random(20, 100),
-        --                      love.math.random(20, 50)}
+        platforms[i].color = PALETTE[love.math.random(1, #PALETTE)]
+
         y = y + math.random(1, 8)
     end
 
-    platforms[1].color = {0, 123, 150}
-    platforms[2].color = {157, 100, 19}
-    platforms[3].color = COLORS.green
+    sprites[1].room = room
 
     KEYS = {}
     KEYS.up = 'w'
@@ -92,7 +97,7 @@ function love.update(dt)
     for i = 1, #sprites do
         local sprite = sprites[i]
 
-        sprite:update_animation_state()
+        sprite:update_animation_state(dt)
         sprite.skin:update(dt)
     end
 
@@ -105,7 +110,7 @@ function do_physics()
         if sprites[i].fallThroughPlatform then
             sprites[i].velocity.y = 1
         else
-            sprites[i].velocity.y = sprites[i].velocity.y + .35
+            sprites[i].velocity.y = sprites[i].velocity.y + .27
         end
     end
 
@@ -116,25 +121,28 @@ function do_physics()
         sprite.position.x = sprite.position.x + sprite.velocity.x
 
         -- Collide
-        local groundY = 32
+        local groundY = BASE_SCREEN_H
         if sprite.velocity.y > 0 then
             step = 1
         else
             step = -1
         end
         local hit = false
-        for i = step, sprite.velocity.y, step do
-            local testPosition = {x = sprite.position.x,
-                                  y = sprite.position.y + step}
+        local testPosition = {x = sprite.position.x, y = sprite.position.y}
+        for i = 0, sprite.velocity.y, step do
+            testPosition = align_to_grid(testPosition)
 
-            -- If the sprite would be going below the ground
-            local hitBox = sprite:get_collision_box(testPosition)
-            if hitBox.y + hitBox.h > groundY then
-                hit = true
+            if step == 1 then
+                -- If the sprite would be on the ground
+                local hitBox = sprite:get_collision_box(testPosition)
+                if hitBox.y + hitBox.h == groundY then
+                    hit = true
+                end
             end
 
             if not hit and step == 1 and not sprite.fallThroughPlatform then
                 -- Check for collision with platforms
+                local platforms = room.platforms
                 for j = 1, #platforms do
                     if sprite:is_on_platform(testPosition, platforms[j]) then
                         hit = true
@@ -142,6 +150,8 @@ function do_physics()
                     end
                 end
             end
+
+            sprite.position.y = testPosition.y
 
             if hit then
                 if step == 1 then
@@ -152,7 +162,7 @@ function do_physics()
                 break
             end
 
-            sprite.position.y = testPosition.y
+            testPosition = {x = sprite.position.x, y = sprite.position.y + step}
         end
 
         -- If the sprite is still moving downward (it didn't collide)
@@ -204,6 +214,7 @@ function draw_platforms()
     love.graphics.setLineWidth(1)
     love.graphics.setLineStyle('rough')
 
+    local platforms = room.platforms
     for i = 1, #platforms do
         local platform = platforms[i]
 
@@ -243,7 +254,7 @@ function draw_sprites()
 end
 
 function draw_ground()
-    love.graphics.setColor(COLORS.green)
+    love.graphics.setColor(PALETTE[1])
     love.graphics.rectangle('fill',
                             camera:get_position().x, BASE_SCREEN_H,
                             BASE_SCREEN_W, 2)

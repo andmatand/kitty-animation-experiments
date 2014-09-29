@@ -29,7 +29,7 @@ function SpriteInputBuffer:process(dt)
 end
 
 function SpriteInputBuffer:process_direction_event(direction, amount, dt)
-    local velocityDelta = {x = (40 * dt) * math.abs(amount)}
+    local velocityDelta = {x = (50 * dt) * math.abs(amount)}
 
     -- Left
     if direction == 4 then
