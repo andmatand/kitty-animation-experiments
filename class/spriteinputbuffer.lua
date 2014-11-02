@@ -29,7 +29,11 @@ function SpriteInputBuffer:process()
 end
 
 function SpriteInputBuffer:process_direction_event(direction, amount)
-    local velocityDelta = {x = .25 * math.abs(amount)}
+    -- Normalize the amount to account for the Axis Deadzone
+    local normalizedAmount
+    normalizedAmount = (math.abs(amount) - AXIS_DEADZONE) / (1 - AXIS_DEADZONE)
+
+    local velocityDelta = {x = .25 * math.abs(normalizedAmount)}
 
     -- If the sprite is in the air (not standing on a platform)
     if not self.sprite.onPlatform then
@@ -39,20 +43,16 @@ function SpriteInputBuffer:process_direction_event(direction, amount)
 
     -- Left
     if direction == 4 then
-        if self.sprite.dir == 4 then
-            self.sprite.velocity.x = self.sprite.velocity.x - velocityDelta.x
-            self.sprite.moved = true
-        else
-            self.sprite.dir = 4
-        end
+        self.sprite.dir = 4
+
+        self.sprite.velocity.x = self.sprite.velocity.x - velocityDelta.x
+        self.sprite.moved = true
 
     -- Right
     elseif direction == 2 then
-        if self.sprite.dir == 2 then
-            self.sprite.velocity.x = self.sprite.velocity.x + velocityDelta.x
-            self.sprite.moved = true
-        else
-            self.sprite.dir = 2
-        end
+        self.sprite.dir = 2
+
+        self.sprite.velocity.x = self.sprite.velocity.x + velocityDelta.x
+        self.sprite.moved = true
     end
 end

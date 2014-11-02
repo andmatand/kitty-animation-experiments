@@ -42,7 +42,7 @@ function VirtualGamepad:gamepadpressed(joystick, button)
 
     if button == BUTTONS.jump then
         -- If the lefty axis is down
-        if self:get_axis('lefty') >= AXIS_THRESHOLD then
+        if self:get_axis('lefty') >= AXIS_DEADZONE then
             self.spriteInputBuffer:push('fall')
         end
 
@@ -52,7 +52,7 @@ end
 
 function VirtualGamepad:keypressed(key)
     if key == KEYS.jump then
-        if self:get_axis('lefty') >= AXIS_THRESHOLD then
+        if self:get_axis('lefty') >= AXIS_DEADZONE then
             self.spriteInputBuffer:push('fall')
         end
 
@@ -62,17 +62,10 @@ end
 
 function VirtualGamepad:send_directional_input()
     local leftx = self:get_axis('leftx') 
-    --local lefty = self:get_axis('lefty') 
 
-    if leftx <= -AXIS_THRESHOLD then
+    if leftx <= -AXIS_DEADZONE then
         self.spriteInputBuffer:push({4, leftx}) -- Right
-    elseif leftx >= AXIS_THRESHOLD then
+    elseif leftx >= AXIS_DEADZONE then
         self.spriteInputBuffer:push({2, leftx}) -- Left
     end
-
-    --if lefty <= AXIS_THRESHOLD then
-    --    self.spriteInputBuffer:push({1, lefty}) -- Up
-    --elseif lefty >= AXIS_THRESHOLD then
-    --    self.spriteInputBuffer:push({3, lefty}) -- Down
-    --end
 end

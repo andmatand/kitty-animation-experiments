@@ -78,12 +78,14 @@ function love.gamepadaxis(joystick, axis, value)
     if joystick ~= GAMEPAD then return end
 
     if axis == 'leftx' then
-        if value <= -AXIS_THRESHOLD then
+        if value <= -AXIS_DEADZONE then
         end
     end
 end
 
 function love.gamepadpressed(joystick, button)
+    GAMEPAD = joystick
+
     if GAMEPAD then
         VIRTUAL_GAMEPAD:gamepadpressed(joystick, button)
     else

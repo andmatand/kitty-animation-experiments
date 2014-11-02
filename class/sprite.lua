@@ -67,7 +67,7 @@ function Sprite:process_input()
     local leftx = self.virtualGamepad:get_axis('leftx')
 
     -- If we are moving on the X axis but neither left nor right are being held
-    if self.velocity.x ~= 0 and math.abs(leftx) < AXIS_THRESHOLD then
+    if self.velocity.x ~= 0 and math.abs(leftx) < AXIS_DEADZONE then
         -- Apply X friction
         for i = 1, #sprites do
             sprites[i].velocity.x = sprites[i].velocity.x * .4

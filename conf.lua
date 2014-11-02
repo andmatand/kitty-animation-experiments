@@ -7,5 +7,5 @@ function love.conf(t)
     t.window.title = 'kitty'
     t.window.vsync = true
 
-    AXIS_THRESHOLD = .3
+    AXIS_DEADZONE = .2
 end
