@@ -205,7 +205,7 @@ function do_physics()
 
         local hit = false
         local newY = sprite.position.y + sprite.velocity.y
-        if sprite.velocity.y > 0 and not sprite.fallThroughPlatform then
+        if sprite.velocity.y > 0 then
             hit = check_for_y_collision(sprite, newY)
         end
 
