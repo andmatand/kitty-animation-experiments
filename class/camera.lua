@@ -17,9 +17,11 @@ function Camera:update(dt, player)
     y2 = math.floor(player.position.y + player.skin:get_height() - 1)
 
     if x1 < self.box.x then
-        self.box.x = self.box.x - 1
+        --self.box.x = self.box.x + (speed * dt)
+        self.box.x = x1 --(speed * dt)
     elseif x2 > self.box.x + self.box.w - 1 then
-        self.box.x = self.box.x + 1
+        --self.box.x = self.box.x + (speed * dt)
+        self.box.x = x2 - self.box.w + 1
     end
 
     local dist = {y = target.y - (self.box.y + (self.box.h / 2))}
@@ -32,6 +34,9 @@ function Camera:update(dt, player)
     if math.floor(self.box.y) > maxBoxY then
         self.box.y = maxBoxY
     end
+
+    -- DEBUG
+    self.box.y = maxBoxY
 end
 
 function Camera:translate()

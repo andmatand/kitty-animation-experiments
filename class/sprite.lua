@@ -1,4 +1,5 @@
 require('class.spriteinputbuffer')
+require('util.graphics')
 
 Sprite = Object:extend()
 
@@ -22,6 +23,8 @@ function Sprite:get_collision_box(position)
 end
 
 function Sprite:is_on_platform(testPosition, platform)
+    testPosition = align_to_grid(testPosition)
+
     local box = self:get_collision_box(testPosition)
 
     if box.y + box.h == platform.position.y and
@@ -48,25 +51,45 @@ function Sprite:jump(fall)
     self.onPlatform = false
 
     self.velocity.y = -velocityDelta.y
-    self.currentJump = {boost = 9}
+    self.currentJump = {boost = 2, startY = self.position.y, maxHeight = 0}
     self.moved = true
 
     soundSources.jump:stop()
     soundSources.jump:play()
 end
 
-function Sprite:process_input(dt)
-    self.inputBuffer:process(dt)
+function Sprite:process_input()
+    if self.currentJump then
+        local currentHeight = self.currentJump.startY - self.position.y 
+        if currentHeight > self.currentJump.maxHeight then
+            self.currentJump.maxHeight = currentHeight
+        end
 
-    if not self.virtualGamepad then return end
-
-    self.virtualGamepad:send_directional_input()
+        if self.velocity.y > 0 and not self.currentJump.printedHeight then
+            self.currentJump.printedHeight = true
+            print('jump height: ' .. self.currentJump.maxHeight)
+        end
+    end
 
     -- If we are in the middle of a jump, and the jump button is being held
     if self.currentJump and self.virtualGamepad:is_down('jump') then
         if self.currentJump.boost > 0 then
-            self.velocity.y = self.velocity.y -.35
-            self.currentJump.boost = self.currentJump.boost - 1
+            local boostAmount = .75
+
+            -- If the per-cycle boost amount is greater than the remaining
+            -- amount of boost
+            if boostAmount > self.currentJump.boost then
+                -- Decrease the boost amount to match the remaining amount of
+                -- boost
+                boostAmount = self.currentJump.boost
+            end
+
+            self.velocity.y = self.velocity.y - boostAmount
+            self.currentJump.boost = self.currentJump.boost - boostAmount
+            --print('boost: ' .. self.currentJump.boost)
         end
     end
+
+    self.virtualGamepad:send_directional_input()
+    self.inputBuffer:process()
 end

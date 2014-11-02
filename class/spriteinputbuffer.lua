@@ -10,11 +10,11 @@ function SpriteInputBuffer:push(event)
     table.insert(self.queue, event)
 end
 
-function SpriteInputBuffer:process(dt)
+function SpriteInputBuffer:process()
     -- Process all input events in the queue
     for _, event in pairs(self.queue) do
         if type(event) == 'table' then
-            self:process_direction_event(event[1], event[2], dt)
+            self:process_direction_event(event[1], event[2])
         else
             if event == 'jump' then
                 self.sprite:jump()
@@ -28,8 +28,8 @@ function SpriteInputBuffer:process(dt)
     self.queue = {}
 end
 
-function SpriteInputBuffer:process_direction_event(direction, amount, dt)
-    local velocityDelta = {x = (50 * dt) * math.abs(amount)}
+function SpriteInputBuffer:process_direction_event(direction, amount)
+    local velocityDelta = {x = 1 * math.abs(amount)}
 
     -- Left
     if direction == 4 then

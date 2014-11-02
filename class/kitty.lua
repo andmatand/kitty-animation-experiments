@@ -73,7 +73,7 @@ function Kitty:is_over_edge_of_platform()
         return true
     end
 
-    if self.position.x < platform.position.x then
+    if self.position.x + 1 < platform.position.x then
         return true
     end
 

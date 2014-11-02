@@ -46,7 +46,7 @@ function love.load()
                              h = love.math.random(4, 8)}
         platforms[i].color = PALETTE[love.math.random(1, #PALETTE)]
 
-        y = y + math.random(1, 8)
+        y = y + love.math.random(1, 8)
     end
 
     sprites[1].room = room
@@ -60,6 +60,12 @@ function love.load()
 
     BUTTONS = {}
     BUTTONS.jump = 'a'
+
+    FPS_LIMIT = 60
+    timeAccumulator = 0
+    frames = 0
+    frameTimer = love.timer.getTime()
+    currentFPS = 0
 end
 
 function love.joystickadded(joystick)
@@ -88,20 +94,85 @@ end
 function love.update(dt)
     --require('lume.lurker').update()
 
-    for i = 1, #sprites do
-        sprites[i]:process_input(dt)
+    local stepTime = 1 / FPS_LIMIT
+
+    timeAccumulator = timeAccumulator + dt
+    while timeAccumulator >= stepTime do
+        frames = frames + 1
+        timeAccumulator = timeAccumulator - stepTime
+
+        for i = 1, #sprites do
+            sprites[i]:process_input()
+        end
+
+        do_physics()
+
+        for i = 1, #sprites do
+            local sprite = sprites[i]
+
+            sprite:update_animation_state(stepTime)
+            sprite.skin:update(stepTime)
+        end
+
+        camera:update(dt, sprites[1])
     end
 
-    do_physics()
+    if love.timer.getTime() >= frameTimer + 1 then
+        currentFPS = frames
 
-    for i = 1, #sprites do
-        local sprite = sprites[i]
+        frameTimer = love.timer.getTime()
+        frames = 0
+    end
+end
 
-        sprite:update_animation_state(dt)
-        sprite.skin:update(dt)
+function check_for_y_collision(sprite, endY)
+    local startY = sprite.position.y
+
+    if sprite.velocity.y <= 0 or endY <= startY then
+        return false
     end
 
-    camera:update(dt, sprites[1])
+    local groundY = BASE_SCREEN_H
+
+    -- Check all pixels (between the current position and the post-velocity
+    -- position) for collisions, on the Y-axis only
+    local hit = false
+    local testPosition = {x = sprite.position.x}
+    for y = startY, endY do
+        testPosition.y = y
+
+        -- If the sprite would be on the ground
+        local hitBox = sprite:get_collision_box(testPosition)
+        if hitBox.y + hitBox.h >= groundY then
+            hit = true
+        end
+
+        if not hit and not sprite.fallThroughPlatform then
+            -- Check for collision with platforms
+            local platforms = room.platforms
+            for j = 1, #platforms do
+                if sprite:is_on_platform(testPosition, platforms[j]) then
+                    hit = true
+                    break
+                end
+            end
+        end
+
+        if hit then
+            -- Stop the Y-axis velocity
+            sprite.velocity.y = 0
+
+            -- Move the sprite to this position
+            sprite.position.y = y
+
+            -- Mark the sprite as being on a platform
+            sprite.onPlatform = true
+
+            break
+        end
+    end
+
+    return hit
 end
 
 function do_physics()
@@ -110,7 +181,7 @@ function do_physics()
         if sprites[i].fallThroughPlatform then
             sprites[i].velocity.y = 1
         else
-            sprites[i].velocity.y = sprites[i].velocity.y + .27
+            sprites[i].velocity.y = sprites[i].velocity.y + .4
         end
     end
 
@@ -118,51 +189,18 @@ function do_physics()
     for i = 1, #sprites do
         local sprite = sprites[i]
 
+        -- Apply X-axis velocity
         sprite.position.x = sprite.position.x + sprite.velocity.x
 
-        -- Collide
-        local groundY = BASE_SCREEN_H
-        if sprite.velocity.y > 0 then
-            step = 1
-        else
-            step = -1
-        end
         local hit = false
-        local testPosition = {x = sprite.position.x, y = sprite.position.y}
-        for i = 0, sprite.velocity.y, step do
-            testPosition = align_to_grid(testPosition)
+        local newY = sprite.position.y + sprite.velocity.y
+        if sprite.velocity.y > 0 and not sprite.fallThroughPlatform then
+            hit = check_for_y_collision(sprite, newY)
+        end
 
-            if step == 1 then
-                -- If the sprite would be on the ground
-                local hitBox = sprite:get_collision_box(testPosition)
-                if hitBox.y + hitBox.h == groundY then
-                    hit = true
-                end
-            end
-
-            if not hit and step == 1 and not sprite.fallThroughPlatform then
-                -- Check for collision with platforms
-                local platforms = room.platforms
-                for j = 1, #platforms do
-                    if sprite:is_on_platform(testPosition, platforms[j]) then
-                        hit = true
-                        break
-                    end
-                end
-            end
-
-            sprite.position.y = testPosition.y
-
-            if hit then
-                if step == 1 then
-                    sprite.onPlatform = true
-                end
-
-                sprite.velocity.y = 0
-                break
-            end
-
-            testPosition = {x = sprite.position.x, y = sprite.position.y + step}
+        if not hit then
+            -- Apply Y-axis velocity
+            sprite.position.y = newY
         end
 
         -- If the sprite is still moving downward (it didn't collide)
@@ -261,6 +299,8 @@ function draw_ground()
 end
 
 function love.draw()
+    love.graphics.push()
+
     love.graphics.setBackgroundColor(0, 0, 0)
     love.graphics.clear()
 
@@ -282,4 +322,9 @@ function love.draw()
     draw_sprites()
 
     love.graphics.setScissor()
+
+    love.graphics.pop()
+    --love.graphics.print('FPS: ' .. love.timer.getFPS(), 1, 1)
+    --love.graphics.print('frames: ' .. frames, 1, 1)
+    love.graphics.print('FPS: ' .. currentFPS, 1, 1)
 end
