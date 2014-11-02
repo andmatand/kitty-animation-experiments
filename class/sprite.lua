@@ -46,12 +46,10 @@ end
 function Sprite:jump(fall)
     if not self.onPlatform then return end
 
-    local velocityDelta = {y = 2}
 
     self.onPlatform = false
 
-    self.velocity.y = -velocityDelta.y
-    self.currentJump = {boost = 2, startY = self.position.y, maxHeight = 0}
+    self.velocity.y = -3
     self.moved = true
 
     soundSources.jump:stop()
@@ -59,34 +57,20 @@ function Sprite:jump(fall)
 end
 
 function Sprite:process_input()
-    if self.currentJump then
-        local currentHeight = self.currentJump.startY - self.position.y 
-        if currentHeight > self.currentJump.maxHeight then
-            self.currentJump.maxHeight = currentHeight
-        end
-
-        if self.velocity.y > 0 and not self.currentJump.printedHeight then
-            self.currentJump.printedHeight = true
-            print('jump height: ' .. self.currentJump.maxHeight)
+    -- If we are moving upwards and the jump button is not being held
+    if self.velocity.y < 0 and not self.virtualGamepad:is_down('jump') then
+        if self.velocity.y < -1 then
+            self.velocity.y = -1
         end
     end
 
-    -- If we are in the middle of a jump, and the jump button is being held
-    if self.currentJump and self.virtualGamepad:is_down('jump') then
-        if self.currentJump.boost > 0 then
-            local boostAmount = .75
+    local leftx = self.virtualGamepad:get_axis('leftx')
 
-            -- If the per-cycle boost amount is greater than the remaining
-            -- amount of boost
-            if boostAmount > self.currentJump.boost then
-                -- Decrease the boost amount to match the remaining amount of
-                -- boost
-                boostAmount = self.currentJump.boost
-            end
-
-            self.velocity.y = self.velocity.y - boostAmount
-            self.currentJump.boost = self.currentJump.boost - boostAmount
-            --print('boost: ' .. self.currentJump.boost)
+    -- If we are moving on the X axis but neither left nor right are being held
+    if self.velocity.x ~= 0 and math.abs(leftx) < AXIS_THRESHOLD then
+        -- Apply X friction
+        for i = 1, #sprites do
+            sprites[i].velocity.x = sprites[i].velocity.x * .4
         end
     end
 

@@ -29,7 +29,13 @@ function SpriteInputBuffer:process()
 end
 
 function SpriteInputBuffer:process_direction_event(direction, amount)
-    local velocityDelta = {x = 1 * math.abs(amount)}
+    local velocityDelta = {x = .25 * math.abs(amount)}
+
+    -- If the sprite is in the air (not standing on a platform)
+    if not self.sprite.onPlatform then
+        -- Decrease the amount of control
+        velocityDelta.x = velocityDelta.x * .5
+    end
 
     -- Left
     if direction == 4 then

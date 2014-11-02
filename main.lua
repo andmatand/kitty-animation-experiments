@@ -181,13 +181,22 @@ function do_physics()
         if sprites[i].fallThroughPlatform then
             sprites[i].velocity.y = 1
         else
-            sprites[i].velocity.y = sprites[i].velocity.y + .4
+            sprites[i].velocity.y = sprites[i].velocity.y + .2
         end
     end
+
+    local MAX_VELOCITY_X = 1.5
 
     -- Apply velocity
     for i = 1, #sprites do
         local sprite = sprites[i]
+
+        -- Limit X-axis velocity to top speed
+        if sprite.velocity.x < -MAX_VELOCITY_X then
+            sprite.velocity.x = -MAX_VELOCITY_X
+        elseif sprite.velocity.x > MAX_VELOCITY_X then
+            sprite.velocity.x = MAX_VELOCITY_X
+        end
 
         -- Apply X-axis velocity
         sprite.position.x = sprite.position.x + sprite.velocity.x
@@ -209,12 +218,6 @@ function do_physics()
         end
 
         sprite.fallThroughPlatform = false
-    end
-
-    -- Apply X friction
-    for i = 1, #sprites do
-        --sprites[i].velocity.x = sprites[i].velocity.x * .5
-        sprites[i].velocity.x = 0
     end
 end
 
