@@ -151,7 +151,7 @@ function do_physics()
                 end
             end
 
-            sprite.position.y = testPosition.y
+            sprite.position.y = 10 - testPosition.y
 
             if hit then
                 if step == 1 then
