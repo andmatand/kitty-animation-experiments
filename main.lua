@@ -74,15 +74,6 @@ function love.joystickadded(joystick)
     end
 end
 
-function love.gamepadaxis(joystick, axis, value)
-    if joystick ~= GAMEPAD then return end
-
-    if axis == 'leftx' then
-        if value <= -AXIS_DEADZONE then
-        end
-    end
-end
-
 function love.gamepadpressed(joystick, button)
     GAMEPAD = joystick
 
@@ -116,7 +107,7 @@ function love.update(dt)
             sprite.skin:update(stepTime)
         end
 
-        camera:update(dt, sprites[1])
+        camera:update(sprites[1])
     end
 
     if love.timer.getTime() >= frameTimer + 1 then
@@ -280,8 +271,8 @@ function draw_sprites()
         local x, y = sprite.position.x, sprite.position.y
 
         -- Ensure the position aligns to the grid
-        x = math.floor((x * GRAPHICS_SCALE) / GRAPHICS_SCALE)
-        y = math.floor((y * GRAPHICS_SCALE) / GRAPHICS_SCALE)
+        x = math.floor(x)
+        y = math.floor(y)
 
         local sx = 1
         if sprite.dir == 2 then

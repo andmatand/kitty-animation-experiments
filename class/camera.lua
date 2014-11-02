@@ -6,7 +6,7 @@ function Camera:new()
                 w = BASE_SCREEN_W / 2, h = BASE_SCREEN_H / 1.5}
 end
 
-function Camera:update(dt, player)
+function Camera:update(player)
     local target = {x = player.position.x + (player.skin:get_width() / 2),
                     y = player.position.y + (player.skin:get_height() / 2)}
 
@@ -17,26 +17,27 @@ function Camera:update(dt, player)
     y2 = math.floor(player.position.y + player.skin:get_height() - 1)
 
     if x1 < self.box.x then
-        --self.box.x = self.box.x + (speed * dt)
-        self.box.x = x1 --(speed * dt)
+        self.box.x = x1
     elseif x2 > self.box.x + self.box.w - 1 then
-        --self.box.x = self.box.x + (speed * dt)
         self.box.x = x2 - self.box.w + 1
     end
 
-    local dist = {y = target.y - (self.box.y + (self.box.h / 2))}
-    if y1 < self.box.y or y2 > self.box.y + self.box.h - 1 then
-        self.box.y = self.box.y + (dist.y * .1)
+    if y1 < self.box.y then
+        self.box.y = y1
+    elseif y2 > self.box.y + self.box.h - 1 then
+        self.box.y = y2 - self.box.h + 1
     end
+
+    --local dist = {y = target.y - (self.box.y + (self.box.h / 2))}
+    --if y1 < self.box.y or y2 > self.box.y + self.box.h - 1 then
+    --    self.box.y = self.box.y + (dist.y * .1)
+    --end
 
     -- Don't let the camera go lower than the ground
     local maxBoxY = BASE_SCREEN_H - self.boxOffset.y - self.box.h + 1
     if math.floor(self.box.y) > maxBoxY then
         self.box.y = maxBoxY
     end
-
-    -- DEBUG
-    self.box.y = maxBoxY
 end
 
 function Camera:translate()
