@@ -14,6 +14,8 @@ function love.load()
     love.graphics.setDefaultFilter('nearest', 'nearest')
     set_fullscreen(false)
 
+    canvas = love.graphics.newCanvas(BASE_SCREEN_W, BASE_SCREEN_H)
+
     SPRITE_IMAGE = love.graphics.newImage('asset/sprites.png')
     ANIM_TEMPLATES = load_animation_templates()
 
@@ -295,32 +297,29 @@ function draw_ground()
 end
 
 function love.draw()
-    love.graphics.push()
-
     love.graphics.setBackgroundColor(0, 0, 0)
     love.graphics.clear()
 
-    scale_and_letterbox()
-    love.graphics.setScissor(GRAPHICS_X,
-                             GRAPHICS_Y,
-                             BASE_SCREEN_W * GRAPHICS_SCALE,
-                             BASE_SCREEN_H * GRAPHICS_SCALE)
-    love.graphics.translate(GRAPHICS_X, GRAPHICS_Y)
-
+    -- Switch to the canvas
+    love.graphics.setCanvas(canvas)
     love.graphics.setBackgroundColor(26, 17, 26)
     love.graphics.clear()
 
-    love.graphics.scale(GRAPHICS_SCALE)
+    -- Draw everything on the canvas
+    love.graphics.push()
     camera:translate()
-
     draw_ground()
     draw_platforms()
     draw_sprites()
-
-    love.graphics.setScissor()
-
     love.graphics.pop()
-    --love.graphics.print('FPS: ' .. love.timer.getFPS(), 1, 1)
-    --love.graphics.print('frames: ' .. frames, 1, 1)
-    love.graphics.print('FPS: ' .. currentFPS, 1, 1)
+
+    -- Draw the canvas on the screen
+    love.graphics.push()
+    scale_and_letterbox()
+    love.graphics.translate(GRAPHICS_X, GRAPHICS_Y)
+    love.graphics.setCanvas()
+    love.graphics.draw(canvas, 0, 0, 0, GRAPHICS_SCALE, GRAPHICS_SCALE)
+    love.graphics.pop()
+
+    love.graphics.print('FPS: ' .. love.timer.getFPS(), 1, 1)
 end
