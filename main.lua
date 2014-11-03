@@ -15,7 +15,10 @@ function love.load()
     set_fullscreen(false)
 
     canvas = love.graphics.newCanvas(BASE_SCREEN_W, BASE_SCREEN_H)
+    restart()
+end
 
+function restart()
     SPRITE_IMAGE = love.graphics.newImage('asset/sprites.png')
     ANIM_TEMPLATES = load_animation_templates()
 
@@ -83,6 +86,12 @@ function love.gamepadpressed(joystick, button)
         VIRTUAL_GAMEPAD:gamepadpressed(joystick, button)
     else
         love.joystickadded(joystick)
+    end
+
+    if button == 'start' then
+        restart()
+    elseif button == 'back' then
+        love.event.quit()
     end
 end
 
@@ -220,7 +229,7 @@ function love.keypressed(key)
     if key == 'f11' then
         set_fullscreen(not love.window.getFullscreen())
     elseif key == 'f5' then
-        love.load()
+        restart()
     elseif key == 'escape' then
         love.event.quit()
     else
