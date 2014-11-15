@@ -260,7 +260,8 @@ function draw_background()
 
     love.graphics.push()
     local cameraPos = camera:get_position()
-    love.graphics.translate(-cameraPos.x * .5, -cameraPos.y * .5)
+    love.graphics.translate(math.floor(-cameraPos.x * .5),
+                            math.floor(-cameraPos.y * .5))
     for i = 1, NUM_STARS do
         if love.math.random(0, 100) == 0 or not stars[i].color then
             --stars[i].color = PALETTE[love.math.random(1, #PALETTE)]
@@ -270,7 +271,9 @@ function draw_background()
 
         love.graphics.setColor(stars[i].color)
 
-        love.graphics.point(stars[i].x, stars[i].y)
+        love.graphics.setPointStyle('rough')
+        love.graphics.setPointSize(1)
+        love.graphics.point(stars[i].x + .5, stars[i].y + .5)
     end
     love.graphics.pop()
 end
