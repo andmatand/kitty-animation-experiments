@@ -25,9 +25,11 @@ function restart()
     soundSources = {jump = love.audio.newSource('asset/jump.wav')}
 
     PALETTE = {}
-    PALETTE[1] = {142, 165, 20}
-    PALETTE[2] = {0, 123, 150}
-    PALETTE[3] = {157, 100, 19}
+    PALETTE[1] = {7, 148, 202} -- blue
+    PALETTE[2] = {226, 31, 149} -- purple
+    PALETTE[3] = {249, 124, 57} -- orange
+    PALETTE[4] = {254, 224, 76} -- yellow
+    PALETTE[5] = {124, 210, 109} -- green
 
     camera = Camera()
     sprites = {}
@@ -39,17 +41,19 @@ function restart()
     room.platforms = {}
     local platforms = room.platforms
 
-    local y = 10
+    local y = -100
     local i = 0
     while y < BASE_SCREEN_H - 10 do
         i = i + 1
 
         platforms[i] = {}
-        platforms[i].position = {x = love.math.random(-100, 100),
-                                 y = y}
+        platforms[i].position = {x = love.math.random(-100, 100), y = y}
         platforms[i].size = {w = love.math.random(5, 30),
                              h = love.math.random(4, 8)}
-        platforms[i].color = PALETTE[love.math.random(1, #PALETTE)]
+
+        local paletteIndex = love.math.random(1, #PALETTE)
+        --platforms[i].color = PALETTE[paletteIndex]
+        platforms[i].colorState = {srcIndex = paletteIndex}
 
         y = y + love.math.random(1, 8)
     end
@@ -241,17 +245,72 @@ function love.keypressed(key)
 end
 
 function draw_background()
-    local screenW = love.window.getWidth()
-    local screenH = love.window.getHeight()
+    NUM_STARS = 800
 
-    -- Draw a background
-    love.graphics.setColor(30, 30, 30)
-    love.graphics.setLineWidth(1)
-    love.graphics.setLineStyle('rough')
-    for y = 0, screenH / GRAPHICS_SCALE, 20 do
-        for x = 0, screenW / GRAPHICS_SCALE, 20 do
-            love.graphics.rectangle('fill', x, y, 10, 10)
+    if not stars then
+        stars = {}
+
+        for i = 1, NUM_STARS do
+            local x = love.math.random(-100, 200)
+            local y = love.math.random(-100, 200)
+
+            stars[i] = {x = x, y = y}
         end
+    end
+
+    love.graphics.push()
+    local cameraPos = camera:get_position()
+    love.graphics.translate(-cameraPos.x * .5, -cameraPos.y * .5)
+    for i = 1, NUM_STARS do
+        if love.math.random(0, 100) == 0 or not stars[i].color then
+            --stars[i].color = PALETTE[love.math.random(1, #PALETTE)]
+            local c = math.random(20, 70)
+            stars[i].color = {c, c, c}
+        end
+
+        love.graphics.setColor(stars[i].color)
+
+        love.graphics.point(stars[i].x, stars[i].y)
+    end
+    love.graphics.pop()
+end
+
+function shift_platform_color(platform)
+    if not platform.colorState.destIndex then
+        local delta
+        if love.math.random(0, 1) == 0 then
+            delta = -1
+        else
+            delta = 1
+        end
+
+        --local delta = 1--love.math.random(1, #PALETTE - 1)
+        platform.colorState.destIndex = platform.colorState.srcIndex + delta
+        if platform.colorState.destIndex < 1 then
+            platform.colorState.destIndex = #PALETTE
+        elseif platform.colorState.destIndex > #PALETTE then
+            platform.colorState.destIndex = platform.colorState.destIndex - 
+                #PALETTE
+        end
+
+        platform.colorState.percent = 0
+        platform.color = {}
+    end
+
+    for i = 1, 3 do
+        local src = PALETTE[platform.colorState.srcIndex][i]
+        local dest = PALETTE[platform.colorState.destIndex][i]
+        local percent = platform.colorState.percent
+
+        platform.color[i] = src + (percent * (dest - src))
+    end
+
+    platform.colorState.percent = platform.colorState.percent + .005
+
+    -- If we have reached the destination color
+    if platform.colorState.percent >= 1 then
+        platform.colorState.srcIndex = platform.colorState.destIndex
+        platform.colorState.destIndex = nil
     end
 end
 
@@ -262,8 +321,8 @@ function draw_platforms()
     local platforms = room.platforms
     for i = 1, #platforms do
         local platform = platforms[i]
+        shift_platform_color(platform)
 
-        --platforms[i].color = {50, 155, 151}
         love.graphics.setColor(platform.color)
         love.graphics.rectangle('fill',
                                 platform.position.x, platform.position.y,
@@ -301,7 +360,7 @@ end
 function draw_ground()
     love.graphics.setColor(PALETTE[1])
     love.graphics.rectangle('fill',
-                            camera:get_position().x, BASE_SCREEN_H,
+                            camera:get_screen_position().x, BASE_SCREEN_H,
                             BASE_SCREEN_W, 2)
 end
 
@@ -311,22 +370,26 @@ function love.draw()
 
     -- Switch to the canvas
     love.graphics.setCanvas(canvas)
-    love.graphics.setBackgroundColor(26, 17, 26)
+    --love.graphics.setBackgroundColor(26, 17, 26, 255)
     love.graphics.clear()
 
     -- Draw everything on the canvas
     love.graphics.push()
+    draw_background()
+    --camera:draw() -- DEBUG
     camera:translate()
     draw_ground()
     draw_platforms()
     draw_sprites()
     love.graphics.pop()
 
+    -- Switch to drawing on the screen
+    love.graphics.setCanvas()
+
     -- Draw the canvas on the screen
     love.graphics.push()
     scale_and_letterbox()
     love.graphics.translate(GRAPHICS_X, GRAPHICS_Y)
-    love.graphics.setCanvas()
     love.graphics.draw(canvas, 0, 0, 0, GRAPHICS_SCALE, GRAPHICS_SCALE)
     love.graphics.pop()
 
