@@ -68,6 +68,8 @@ function Kitty:is_over_edge_of_platform()
         return false
     end
 
+    platform.hasOccupant = true
+
     if self.position.x + (self.skin:get_width() - 1) - 1 >
        platform.position.x + platform.size.w then
         return true

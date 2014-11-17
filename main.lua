@@ -115,6 +115,10 @@ function love.update(dt)
 
         do_physics()
 
+        for i = 1, #room.platforms do
+            room.platforms[i].hasOccupant = false
+        end
+
         for i = 1, #sprites do
             local sprite = sprites[i]
 
@@ -167,14 +171,25 @@ function check_for_y_collision(sprite, endY)
         end
 
         if hit then
-            -- Stop the Y-axis velocity
-            sprite.velocity.y = 0
-
             -- Move the sprite to this position
             sprite.position.y = y
 
             -- Mark the sprite as being on a platform
             sprite.onPlatform = true
+
+            -- If the sprite is falling too fast to survive the impact
+            if sprite.velocity.y > 5 then
+                if sprite.checkpointPosition then
+                    sprite.position = {x = sprite.checkpointPosition.x,
+                                       y = sprite.checkpointPosition.y}
+                end
+            else
+                sprite.checkpointPosition = {x = sprite.position.x,
+                                             y = sprite.position.y}
+            end
+
+            -- Stop the Y-axis velocity
+            sprite.velocity.y = 0
 
             break
         end
@@ -342,7 +357,11 @@ function shift_platform_color(platform)
         platform.color[i] = src + (percent * (dest - src))
     end
 
-    platform.colorState.percent = platform.colorState.percent + .005
+    local changeDelta = .005
+    if platform.hasOccupant then
+        changeDelta = changeDelta * 3
+    end
+    platform.colorState.percent = platform.colorState.percent + changeDelta
 
     -- If we have reached the destination color
     if platform.colorState.percent >= 1 then
@@ -360,10 +379,24 @@ function draw_platforms()
         local platform = platforms[i]
         shift_platform_color(platform)
 
+        local drawMode, x, y, w, h
+        x = platform.position.x
+        y = platform.position.y
+        w = platform.size.w
+        h = platform.size.h
+
+        if platform.hasOccupant then
+            drawMode = 'fill'
+        else
+            drawMode = 'line'
+            x = x + 1
+            y = y + 1
+            w = w - 1
+            h = h - 1
+        end
+
         love.graphics.setColor(platform.color)
-        love.graphics.rectangle('fill',
-                                platform.position.x, platform.position.y,
-                                platform.size.w, platform.size.h)
+        love.graphics.rectangle(drawMode, x, y, w, h)
     end
 end
 
