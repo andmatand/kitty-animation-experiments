@@ -69,9 +69,7 @@ function Sprite:process_input()
     -- If we are moving on the X axis but neither left nor right are being held
     if self.velocity.x ~= 0 and math.abs(leftx) < AXIS_DEADZONE then
         -- Apply X friction
-        for i = 1, #sprites do
-            sprites[i].velocity.x = sprites[i].velocity.x * .4
-        end
+        self.velocity.x = 0
     end
 
     self.virtualGamepad:send_directional_input()
