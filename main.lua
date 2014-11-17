@@ -245,7 +245,7 @@ function love.keypressed(key)
 end
 
 function draw_background()
-    NUM_STARS = 800
+    NUM_STARS = 200
 
     if not stars then
         stars = {}
@@ -265,15 +265,49 @@ function draw_background()
     for i = 1, NUM_STARS do
         if love.math.random(0, 100) == 0 or not stars[i].color then
             --stars[i].color = PALETTE[love.math.random(1, #PALETTE)]
-            local c = math.random(20, 70)
+            local c = math.random(20, 25)
+            if math.random(0, 5) == 0 then
+                c = c * 2
+            end
             stars[i].color = {c, c, c}
         end
 
-        love.graphics.setColor(stars[i].color)
-
         love.graphics.setPointStyle('rough')
         love.graphics.setPointSize(1)
-        love.graphics.point(stars[i].x + .5, stars[i].y + .5)
+        local color = stars[i].color
+        local row = 0
+        for y = stars[i].y - 1, stars[i].y + 1 do
+            local startX, endX
+            if (row == 1) then
+                startX = stars[i].x - 1
+                endX = stars[i].x + 1
+            else
+                startX = stars[i].x
+                endX = stars[i].x
+            end
+            for x = startX, endX do
+                color = stars[i].color
+                if row == 1 and x == startX + 1 then
+                    color = stars[i].color
+                else
+                    local colorFade = 20
+                    color = {color[1] - colorFade,
+                             color[2] - colorFade,
+                             color[3] - colorFade}
+                end
+
+                if (color[1] > 0) then
+                    love.graphics.setColor(color)
+                    love.graphics.point(x + .5, y + .5)
+                end
+
+                --local colorFade = 4
+                --color = {color[1] - colorFade,
+                --         color[2] - colorFade,
+                --         color[3] - colorFade}
+            end
+            row = row + 1
+        end
     end
     love.graphics.pop()
 end
