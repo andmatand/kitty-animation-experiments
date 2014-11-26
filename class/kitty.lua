@@ -48,7 +48,7 @@ function Kitty:update_animation_state(dt)
             self.skin:set_anim('walk')
         end
 
-        TURN_VELOCITY = MAX_VELOCITY_X * .8
+        TURN_VELOCITY = MAX_VELOCITY_X * .5
 
         -- It we are skidding from changing direction suddenly while moving
         if (self.dir == 2 and self.velocity.x <= -TURN_VELOCITY or

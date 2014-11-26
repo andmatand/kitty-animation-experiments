@@ -19,7 +19,7 @@ function love.load()
 end
 
 function restart()
-    MAX_VELOCITY_X = 1.5
+    MAX_VELOCITY_X = 1.25
     MAX_VELOCITY_Y = 6
 
     SPRITE_IMAGE = love.graphics.newImage('asset/sprites.png')
