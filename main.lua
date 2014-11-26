@@ -19,6 +19,9 @@ function love.load()
 end
 
 function restart()
+    MAX_VELOCITY_X = 1.5
+    MAX_VELOCITY_Y = 6
+
     SPRITE_IMAGE = love.graphics.newImage('asset/sprites.png')
     ANIM_TEMPLATES = load_animation_templates()
 
@@ -123,6 +126,7 @@ function love.update(dt)
             local sprite = sprites[i]
 
             sprite:update_animation_state(stepTime)
+            sprite:post_update_animation_state()
             sprite.skin:update(stepTime)
         end
 
@@ -178,14 +182,15 @@ function check_for_y_collision(sprite, endY)
             sprite.onPlatform = true
 
             -- If the sprite is falling too fast to survive the impact
-            if sprite.velocity.y > 5 then
+            if sprite.velocity.y >= MAX_VELOCITY_Y then
                 if sprite.checkpointPosition then
-                    sprite.position = {x = sprite.checkpointPosition.x,
-                                       y = sprite.checkpointPosition.y}
+                    sprite.hitPlatformTooHard = true
                 end
             else
-                sprite.checkpointPosition = {x = sprite.position.x,
-                                             y = sprite.position.y}
+                if not sprite.hitPlatformTooHard then
+                    sprite.checkpointPosition = {x = sprite.position.x,
+                                                 y = sprite.position.y}
+                end
             end
 
             -- Stop the Y-axis velocity
@@ -208,8 +213,6 @@ function do_physics()
         end
     end
 
-    local MAX_VELOCITY_X = 1.5
-
     -- Apply velocity
     for i = 1, #sprites do
         local sprite = sprites[i]
@@ -219,6 +222,11 @@ function do_physics()
             sprite.velocity.x = -MAX_VELOCITY_X
         elseif sprite.velocity.x > MAX_VELOCITY_X then
             sprite.velocity.x = MAX_VELOCITY_X
+        end
+
+        -- Enforce y-axis terminal velocity
+        if sprite.velocity.y > MAX_VELOCITY_Y then
+            sprite.velocity.y = MAX_VELOCITY_Y
         end
 
         -- Apply X-axis velocity

@@ -29,6 +29,8 @@ function SpriteInputBuffer:process()
 end
 
 function SpriteInputBuffer:process_direction_event(direction, amount)
+    if self.sprite.hitPlatformTooHard then return end
+
     -- Normalize the amount to account for the Axis Deadzone
     local normalizedAmount
     normalizedAmount = (math.abs(amount) - AXIS_DEADZONE) / (1 - AXIS_DEADZONE)

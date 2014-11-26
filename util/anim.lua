@@ -12,7 +12,7 @@ function create_quads(image, startPosition, size, count)
                                                   image:getWidth(),
                                                   image:getHeight())
         x = x + size.w
-        if x > image:getWidth() then
+        if x + size.w > image:getWidth() then
             x = 0
             y = y + size.h
         end

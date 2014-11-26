@@ -44,7 +44,7 @@ function Sprite:fall()
 end
 
 function Sprite:jump(fall)
-    if not self.onPlatform then return end
+    if not self.onPlatform or self.hitPlatformTooHard then return end
 
 
     self.onPlatform = false
@@ -67,7 +67,9 @@ function Sprite:process_input()
     local leftx = self.virtualGamepad:get_axis('leftx')
 
     -- If we are moving on the X axis but neither left nor right are being held
-    if self.velocity.x ~= 0 and math.abs(leftx) < AXIS_DEADZONE then
+    if (self.velocity.x ~= 0 and math.abs(leftx) < AXIS_DEADZONE) or
+       self.hitPlatformTooHard
+    then
         -- Apply X friction
         self.velocity.x = 0
     end

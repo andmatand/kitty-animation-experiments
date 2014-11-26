@@ -13,24 +13,60 @@ function Kitty:new()
     self.prevState = {}
 end
 
+function Kitty:post_update_animation_state()
+    self.moved = false
+    self.prevState.onPlatform = self.onPlatform
+end
+
 function Kitty:update_animation_state(dt)
+    if self.skin:get_anim() == 'splat' and
+        self.skin.currentAnimation:is_stopped()
+    then
+        self.position = {x = self.checkpointPosition.x,
+                         y = self.checkpointPosition.y}
+        self.hitPlatformTooHard = false
+    end
+
+    if self.hitPlatformTooHard then
+        self.skin:set_anim('splat')
+        return
+    end
+
     if self.moved then
-        self.skin:set_anim('walk')
-    else
-        if not self.prevState.onPlatform and self.onPlatform then
+        if self.skin:get_anim() ~= 'land_walk' or
+           (self.skin:get_anim() == 'land_walk' and
+            self.skin.currentAnimation:is_stopped())
+        then
+            self.skin:set_anim('walk')
+        end
+    end
+
+    if not self.prevState.onPlatform and self.onPlatform then
+        if self.skin:get_anim() == 'walk' then
+            self.skin:set_anim('land_walk')
+        else
             self.skin:set_anim('land')
         end
+    end
 
-        if self.skin:get_anim() == 'walk' then
-            self.skin:set_anim('default')
-        end
+    if not self.moved and self.skin:get_anim() == 'walk' then
+        self.skin:set_anim('default')
     end
 
     if self.onPlatform then
         -- If we are over the edge of the platform
         if self:is_over_edge_of_platform() then
-            self.skin:set_anim('cliff')
-            self.skin.currentAnimation:rewind()
+            if self.skin:get_anim() == 'land' then
+                self.skin:set_anim('land_cliff')
+            end
+
+            if self.skin:get_anim() ~= 'land_cliff' or
+                (self.skin:get_anim() == 'land_cliff' and
+                 self.skin.currentAnimation:is_stopped())
+            then
+                self.skin:set_anim('cliff')
+                self.skin.currentAnimation:rewind()
+            end
         end
     else
         self.skin:set_anim('jump')
@@ -49,9 +85,6 @@ function Kitty:update_animation_state(dt)
             self.blinkTimer:reset()
         end
     end
-
-    self.moved = false
-    self.prevState.onPlatform = self.onPlatform
 end
 
 function Kitty:get_current_platform()
