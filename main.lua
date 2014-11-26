@@ -1,5 +1,6 @@
 Object = require('util.oo')
 require('util.anim')
+require('util.sprite')
 require('util.graphics')
 require('class.animation')
 require('class.camera')
@@ -57,6 +58,20 @@ function restart()
         local paletteIndex = love.math.random(1, #PALETTE)
         --platforms[i].color = PALETTE[paletteIndex]
         platforms[i].colorState = {srcIndex = paletteIndex}
+
+        -- Prevent this platform from overlapping with another platform
+        local anyOverlap
+        repeat
+            anyOverlap = false
+            for j = 1, i - 1 do
+                while box_overlap(platforms[i], platforms[j]) do
+                    -- Move this platform a little
+                    platforms[i].position.x = platforms[i].position.x - 1
+                    platforms[i].position.y = platforms[i].position.y - 1
+                    anyOverlap = true
+                end
+            end
+        until anyOverlap == false
 
         y = y + love.math.random(1, 8)
     end
@@ -448,7 +463,7 @@ function love.draw()
 
     -- Switch to the canvas
     love.graphics.setCanvas(canvas)
-    --love.graphics.setBackgroundColor(26, 17, 26, 255)
+    --love.graphics.setBackgroundColor(10, 10, 10, 255)
     love.graphics.clear()
 
     -- Draw everything on the canvas
