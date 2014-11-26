@@ -18,6 +18,16 @@ function Kitty:post_update_animation_state()
     self.prevState.onPlatform = self.onPlatform
 end
 
+function anim_is_playing(skin, animKey)
+    if skin:get_anim() ~= animKey or
+       (skin:get_anim() == animKey and skin.currentAnimation:is_stopped())
+    then
+        return false
+    else
+        return true
+    end
+end
+
 function Kitty:update_animation_state(dt)
     if self.skin:get_anim() == 'splat' and
         self.skin.currentAnimation:is_stopped()
@@ -33,11 +43,18 @@ function Kitty:update_animation_state(dt)
     end
 
     if self.moved then
-        if self.skin:get_anim() ~= 'land_walk' or
-           (self.skin:get_anim() == 'land_walk' and
-            self.skin.currentAnimation:is_stopped())
-        then
+        if not anim_is_playing(self.skin, 'land_walk') and
+           not anim_is_playing(self.skin, 'turn') then
             self.skin:set_anim('walk')
+        end
+
+        TURN_VELOCITY = MAX_VELOCITY_X * .8
+
+        -- It we are skidding from changing direction suddenly while moving
+        if (self.dir == 2 and self.velocity.x <= -TURN_VELOCITY or
+            self.dir == 4 and self.velocity.x >= TURN_VELOCITY)
+        then
+            self.skin:set_anim('turn')
         end
     end
 
@@ -60,10 +77,7 @@ function Kitty:update_animation_state(dt)
                 self.skin:set_anim('land_cliff')
             end
 
-            if self.skin:get_anim() ~= 'land_cliff' or
-                (self.skin:get_anim() == 'land_cliff' and
-                 self.skin.currentAnimation:is_stopped())
-            then
+            if not anim_is_playing(self.skin, 'land_cliff') then
                 self.skin:set_anim('cliff')
                 self.skin.currentAnimation:rewind()
             end
