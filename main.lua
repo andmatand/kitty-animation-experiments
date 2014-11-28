@@ -8,6 +8,7 @@ require('class.kitty')
 require('class.skin')
 require('class.sprite')
 require('class.virtualgamepad')
+require('system.star')
 
 function love.load()
     DEBUG = true
@@ -27,6 +28,9 @@ function restart()
     ANIM_TEMPLATES = load_animation_templates()
 
     soundSources = {jump = love.audio.newSource('asset/jump.wav')}
+
+    systems = {}
+    systems.star = StarSystem()
 
     PALETTE = {}
     PALETTE[1] = {7, 148, 202} -- blue
@@ -56,8 +60,8 @@ function restart()
                              h = love.math.random(4, 8)}
 
         local paletteIndex = love.math.random(1, #PALETTE)
-        --platforms[i].color = PALETTE[paletteIndex]
         platforms[i].colorState = {srcIndex = paletteIndex}
+        shift_platform_color(platforms[i])
 
         -- Prevent this platform from overlapping with another platform
         local anyOverlap
@@ -127,6 +131,8 @@ function love.update(dt)
         frames = frames + 1
         timeAccumulator = timeAccumulator - stepTime
 
+        systems.star:update()
+
         for i = 1, #sprites do
             sprites[i]:process_input()
         end
@@ -135,6 +141,7 @@ function love.update(dt)
 
         for i = 1, #room.platforms do
             room.platforms[i].hasOccupant = false
+            shift_platform_color(room.platforms[i])
         end
 
         for i = 1, #sprites do
@@ -282,74 +289,6 @@ function love.keypressed(key)
     end
 end
 
-function draw_background()
-    NUM_STARS = 200
-
-    if not stars then
-        stars = {}
-
-        for i = 1, NUM_STARS do
-            local x = love.math.random(-100, 200)
-            local y = love.math.random(-100, 200)
-
-            stars[i] = {x = x, y = y}
-        end
-    end
-
-    love.graphics.push()
-    local cameraPos = camera:get_position()
-    love.graphics.translate(math.floor(-cameraPos.x * .5),
-                            math.floor(-cameraPos.y * .5))
-    for i = 1, NUM_STARS do
-        if love.math.random(0, 100) == 0 or not stars[i].color then
-            --stars[i].color = PALETTE[love.math.random(1, #PALETTE)]
-            local c = math.random(20, 25)
-            if math.random(0, 5) == 0 then
-                c = c * 2
-            end
-            stars[i].color = {c, c, c}
-        end
-
-        love.graphics.setPointStyle('rough')
-        love.graphics.setPointSize(1)
-        local color = stars[i].color
-        local row = 0
-        for y = stars[i].y - 1, stars[i].y + 1 do
-            local startX, endX
-            if (row == 1) then
-                startX = stars[i].x - 1
-                endX = stars[i].x + 1
-            else
-                startX = stars[i].x
-                endX = stars[i].x
-            end
-            for x = startX, endX do
-                color = stars[i].color
-                if row == 1 and x == startX + 1 then
-                    color = stars[i].color
-                else
-                    local colorFade = 20
-                    color = {color[1] - colorFade,
-                             color[2] - colorFade,
-                             color[3] - colorFade}
-                end
-
-                if (color[1] > 0) then
-                    love.graphics.setColor(color)
-                    love.graphics.point(x + .5, y + .5)
-                end
-
-                --local colorFade = 4
-                --color = {color[1] - colorFade,
-                --         color[2] - colorFade,
-                --         color[3] - colorFade}
-            end
-            row = row + 1
-        end
-    end
-    love.graphics.pop()
-end
-
 function shift_platform_color(platform)
     if not platform.colorState.destIndex then
         local delta
@@ -381,9 +320,6 @@ function shift_platform_color(platform)
     end
 
     local changeDelta = .005
-    if platform.hasOccupant then
-        changeDelta = changeDelta * 3
-    end
     platform.colorState.percent = platform.colorState.percent + changeDelta
 
     -- If we have reached the destination color
@@ -400,7 +336,6 @@ function draw_platforms()
     local platforms = room.platforms
     for i = 1, #platforms do
         local platform = platforms[i]
-        shift_platform_color(platform)
 
         local drawMode, x, y, w, h
         x = platform.position.x
@@ -468,7 +403,7 @@ function love.draw()
 
     -- Draw everything on the canvas
     love.graphics.push()
-    draw_background()
+    systems.star:draw()
     --camera:draw() -- DEBUG
     camera:translate()
     draw_ground()
