@@ -22,7 +22,7 @@ end
 
 function restart()
     MAX_VELOCITY_X = 1.25
-    MAX_VELOCITY_Y = 6
+    MAX_VELOCITY_Y = 5.5
 
     SPRITE_IMAGE = love.graphics.newImage('asset/sprites.png')
     ANIM_TEMPLATES = load_animation_templates()

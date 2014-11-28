@@ -81,4 +81,3 @@ function choose_random_color()
 
     return {c, c, c}
 end
-
