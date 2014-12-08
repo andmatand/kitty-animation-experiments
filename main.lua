@@ -11,21 +11,28 @@ require('class.virtualgamepad')
 require('system.star')
 
 function love.load()
-    DEBUG = true
     love.mouse.setVisible(false)
     love.graphics.setDefaultFilter('nearest', 'nearest')
     set_fullscreen(false)
 
     canvas = love.graphics.newCanvas(BASE_SCREEN_W, BASE_SCREEN_H)
+
+    shaders = {}
+    shaders.bloom = love.graphics.newShader('shader/bloom.lsl')
+
     restart()
 end
 
 function restart()
     MAX_VELOCITY_X = 1.25
-    MAX_VELOCITY_Y = 5.5
+    MAX_VELOCITY_Y = 5
 
     SPRITE_IMAGE = love.graphics.newImage('asset/sprites.png')
     ANIM_TEMPLATES = load_animation_templates()
+    GROUND_QUAD = love.graphics.newQuad(
+        0, 61,
+        16, 3,
+        SPRITE_IMAGE:getWidth(), SPRITE_IMAGE:getHeight())
 
     soundSources = {jump = love.audio.newSource('asset/jump.wav')}
 
@@ -124,6 +131,10 @@ end
 function love.update(dt)
     --require('lume.lurker').update()
 
+    if dt > 0.25 then
+        dt = 0.25 -- Avoid spiral of death
+    end
+
     local stepTime = 1 / FPS_LIMIT
 
     timeAccumulator = timeAccumulator + dt
@@ -170,7 +181,7 @@ function check_for_y_collision(sprite, endY)
         return false
     end
 
-    local groundY = BASE_SCREEN_H
+    local groundY = BASE_SCREEN_H - 2
 
     -- Check all pixels (between the current position and the post-velocity
     -- position) for collisions, on the Y-axis only
@@ -231,7 +242,7 @@ function do_physics()
         if sprites[i].fallThroughPlatform then
             sprites[i].velocity.y = 1
         else
-            sprites[i].velocity.y = sprites[i].velocity.y + .2
+            sprites[i].velocity.y = sprites[i].velocity.y + .15
         end
     end
 
@@ -386,40 +397,59 @@ function draw_sprites()
 end
 
 function draw_ground()
-    love.graphics.setColor(PALETTE[1])
-    love.graphics.rectangle('fill',
-                            camera:get_screen_position().x, BASE_SCREEN_H,
-                            BASE_SCREEN_W, 2)
+    local _, _, quadWidth = GROUND_QUAD:getViewport()
+    local cameraPos = camera:get_screen_position()
+    local x1 = cameraPos.x - (cameraPos.x % quadWidth)
+    local x2 = cameraPos.x + BASE_SCREEN_W
+
+    love.graphics.setColor(255, 255, 255, 255)
+    for x = x1, x2, quadWidth do
+        love.graphics.draw(SPRITE_IMAGE, GROUND_QUAD, x, BASE_SCREEN_H - 2)
+    end
 end
 
 function love.draw()
     love.graphics.setBackgroundColor(0, 0, 0)
     love.graphics.clear()
 
-    -- Switch to the canvas
-    love.graphics.setCanvas(canvas)
-    --love.graphics.setBackgroundColor(10, 10, 10, 255)
-    love.graphics.clear()
-
-    -- Draw everything on the canvas
+    -- Draw the platforms and stars on the canvas
     love.graphics.push()
+    love.graphics.setCanvas(canvas)
+    love.graphics.setBackgroundColor(0, 0, 0, 255)
+    love.graphics.clear()
     systems.star:draw()
-    --camera:draw() -- DEBUG
+    camera:translate()
+    draw_platforms()
+    love.graphics.pop()
+
+    -- Draw the canvas (with platforms and stars on it) on the screen
+    love.graphics.setCanvas()
+    love.graphics.push()
+    scale_and_letterbox()
+    love.graphics.translate(GRAPHICS_X, GRAPHICS_Y)
+    love.graphics.setShader(shaders.bloom)
+    love.graphics.draw(canvas, 0, 0, 0, GRAPHICS_SCALE, GRAPHICS_SCALE)
+    love.graphics.setShader()
+    love.graphics.pop()
+
+    -- Draw the sprites on the canvas
+    love.graphics.push()
+    love.graphics.setCanvas(canvas)
+    love.graphics.setBackgroundColor(0, 0, 0, 0)
+    love.graphics.clear()
     camera:translate()
     draw_ground()
-    draw_platforms()
     draw_sprites()
     love.graphics.pop()
 
-    -- Switch to drawing on the screen
-    love.graphics.setCanvas()
-
-    -- Draw the canvas on the screen
+    -- Draw the sprite canvas on the screen
     love.graphics.push()
-    scale_and_letterbox()
+    love.graphics.setCanvas()
     love.graphics.translate(GRAPHICS_X, GRAPHICS_Y)
     love.graphics.draw(canvas, 0, 0, 0, GRAPHICS_SCALE, GRAPHICS_SCALE)
     love.graphics.pop()
 
+    -- Display FPS
+    love.graphics.setColor(255, 255, 255)
     love.graphics.print('FPS: ' .. love.timer.getFPS(), 1, 1)
 end

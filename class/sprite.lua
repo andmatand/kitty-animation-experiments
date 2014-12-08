@@ -49,7 +49,7 @@ function Sprite:jump(fall)
 
     self.onPlatform = false
 
-    self.velocity.y = -3
+    self.velocity.y = -2.5
     self.moved = true
 
     soundSources.jump:stop()
