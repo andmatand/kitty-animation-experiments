@@ -415,7 +415,7 @@ function love.draw()
     -- Draw the platforms and stars on the canvas
     love.graphics.push()
     love.graphics.setCanvas(canvas)
-    love.graphics.setBackgroundColor(0, 0, 0, 255)
+    love.graphics.setBackgroundColor(10, 10, 10, 255)
     love.graphics.clear()
     systems.star:draw()
     camera:translate()

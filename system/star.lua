@@ -1,3 +1,5 @@
+require('util.tables')
+
 StarSystem = Object:extend()
 
 function StarSystem:new()
@@ -54,14 +56,12 @@ function StarSystem:draw()
             for _, offset in pairs(offsets) do
                 local x = entity.position.x + offset.x
                 local y = entity.position.y + offset.y
-                local color = entity.color
+                local color = copy_table(entity.color)
 
                 -- If this is not the middle of the star
                 if not (offset.x == 0 and offset.y == 0) then
-                    local colorFade = 20
-                    color = {color[1] - colorFade,
-                             color[2] - colorFade,
-                             color[3] - colorFade}
+                    -- Make the color transparent
+                    color[4] = 75
                 end
 
                 love.graphics.setColor(color)
