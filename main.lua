@@ -24,8 +24,9 @@ function love.load()
 end
 
 function restart()
-    MAX_VELOCITY_X = 1.25
+    MAX_VELOCITY_X = 1
     MAX_VELOCITY_Y = 5
+    GRAVITY = .1
 
     SPRITE_IMAGE = love.graphics.newImage('asset/sprites.png')
     ANIM_TEMPLATES = load_animation_templates()
@@ -242,7 +243,7 @@ function do_physics()
         if sprites[i].fallThroughPlatform then
             sprites[i].velocity.y = 1
         else
-            sprites[i].velocity.y = sprites[i].velocity.y + .15
+            sprites[i].velocity.y = sprites[i].velocity.y + GRAVITY
         end
     end
 
