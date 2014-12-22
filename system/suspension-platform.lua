@@ -4,10 +4,10 @@ require('util.sprite')
 local TIGHTNESS = .15
 local DAMPING = .12
 
-SuspensionPlatform = System:extend()
+SuspensionPlatformSystem = System:extend()
 
-function SuspensionPlatform:new()
-    SuspensionPlatform.super.new(self)
+function SuspensionPlatformSystem:new()
+    SuspensionPlatformSystem.super.new(self)
 
     self.requiredComponents = {
         'position',
@@ -15,8 +15,8 @@ function SuspensionPlatform:new()
     }
 end
 
-function SuspensionPlatform:add_entity(e)
-    SuspensionPlatform.super.add_entity(self, e)
+function SuspensionPlatformSystem:add_entity(e)
+    SuspensionPlatformSystem.super.add_entity(self, e)
 
     if not e.originalPosition then
         e.originalPosition = copy_table(e.position)
@@ -27,7 +27,7 @@ function SuspensionPlatform:add_entity(e)
     end
 end
 
-function SuspensionPlatform:receive_velocity()
+function SuspensionPlatformSystem:receive_velocity()
     for i = 1, #self.entities do
         local e = self.entities[i]
 
@@ -42,7 +42,7 @@ function SuspensionPlatform:receive_velocity()
     end
 end
 
-function SuspensionPlatform:apply_spring_force()
+function SuspensionPlatformSystem:apply_spring_force()
     for i = 1, #self.entities do
         local e = self.entities[i]
 
@@ -62,7 +62,7 @@ function SuspensionPlatform:apply_spring_force()
     end
 end
 
-function SuspensionPlatform:check_for_y_collision(e, newY)
+function SuspensionPlatformSystem:check_for_y_collision(e, newY)
     for y = e.position.y, newY, -1 do
         for i = 1, #e.room.sprites do
             local sprite = e.room.sprites[i]
@@ -92,7 +92,7 @@ function SuspensionPlatform:check_for_y_collision(e, newY)
     end
 end
 
-function SuspensionPlatform:apply_velocity()
+function SuspensionPlatformSystem:apply_velocity()
     for i = 1, #self.entities do
         local e = self.entities[i]
 
@@ -109,7 +109,7 @@ function SuspensionPlatform:apply_velocity()
     end
 end
 
-function SuspensionPlatform:pre_update()
+function SuspensionPlatformSystem:pre_update()
     for i = 1, #self.entities do
         local e = self.entities[i]
 
@@ -117,7 +117,7 @@ function SuspensionPlatform:pre_update()
     end
 end
 
-function SuspensionPlatform:update()
+function SuspensionPlatformSystem:update()
     self:receive_velocity()
     self:apply_spring_force()
     self:apply_velocity()

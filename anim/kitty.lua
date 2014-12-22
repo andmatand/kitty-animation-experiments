@@ -2,7 +2,7 @@ require('class.animationtemplate')
 require('util.anim')
 
 local size = {w = 7, h = 5}
-local quads = create_quads(SPRITE_IMAGE, {x = 0, y = 0}, size, 13)
+local quads = create_quads(TEXTURE, {x = 0, y = 0}, size, 13)
 
 local templates = {}
 templates.default    = AnimationTemplate({{1, 0}}, quads)

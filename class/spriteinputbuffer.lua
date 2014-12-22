@@ -35,7 +35,7 @@ function SpriteInputBuffer:process_direction_event(direction, amount)
     local normalizedAmount
     normalizedAmount = (math.abs(amount) - AXIS_DEADZONE) / (1 - AXIS_DEADZONE)
 
-    local velocityDelta = {x = .125 * math.abs(normalizedAmount)}
+    local velocityDelta = {x = .1 * math.abs(normalizedAmount)}
 
     -- If the sprite is in the air (not standing on a platform)
     if not self.sprite.onPlatform then

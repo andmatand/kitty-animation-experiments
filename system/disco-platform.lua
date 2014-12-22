@@ -108,8 +108,12 @@ function DiscoPlatformSystem:draw()
         h = platform.size.h
 
         if platform.occupant then
+            platform.isLit = true
+        end
+
+        if platform.isLit then
             drawMode = 'fill'
-            platform.fillAlpha = platform.fillAlpha + 40
+            platform.fillAlpha = platform.fillAlpha + 10
             if platform.fillAlpha > 255 then
                 platform.fillAlpha = 255
             end
@@ -126,11 +130,28 @@ function DiscoPlatformSystem:draw()
 
         love.graphics.setColor(platform.color)
         love.graphics.rectangle(drawMode, x, y, w, h)
+
     end
+end
+
+function DiscoPlatformSystem:all_platforms_are_lit()
+    for i = 1, #self.entities do
+        local e = self.entities[i]
+
+        if not e.isLit then
+            return false
+        end
+    end
+
+    return true
 end
 
 function DiscoPlatformSystem:update()
     for i = 1, #self.entities do
         shift_color(self.entities[i])
+    end
+
+    if self:all_platforms_are_lit() then
+        restart()
     end
 end

@@ -11,6 +11,7 @@ require('class.virtualgamepad')
 require('system.disco-platform')
 require('system.star')
 require('system.suspension-platform')
+require('system.textured-platform')
 require('system.player-physics')
 
 function love.load()
@@ -27,12 +28,13 @@ function love.load()
 end
 
 function restart()
-    SPRITE_IMAGE = love.graphics.newImage('asset/sprites.png')
+    TEXTURE = love.graphics.newImage('asset/sprites.png')
     ANIM_TEMPLATES = load_animation_templates()
+    GRASS_QUADS = create_quads(TEXTURE, {x = 0, y = 53}, {w = 8, h = 8}, 3)
     GROUND_QUAD = love.graphics.newQuad(
         0, 61,
         16, 3,
-        SPRITE_IMAGE:getWidth(), SPRITE_IMAGE:getHeight())
+        TEXTURE:getWidth(), TEXTURE:getHeight())
 
     soundSources = {jump = love.audio.newSource('asset/jump.wav')}
 
@@ -40,7 +42,8 @@ function restart()
     systems.discoPlatform = DiscoPlatformSystem()
     systems.playerPhysics = PlayerPhysicsSystem()
     systems.star = StarSystem()
-    systems.suspensionPlatform = SuspensionPlatform()
+    systems.suspensionPlatform = SuspensionPlatformSystem()
+    systems.texturedPlatform = TexturedPlatformSystem()
 
     -- Assign explicit update-order to systems that require it
     systemUpdateOrderMap = {
@@ -67,12 +70,11 @@ function restart()
 
     room = {}
     room.sprites = {}
+    room.platforms = {}
 
     room.sprites[1] = Kitty()
     VIRTUAL_GAMEPAD = VirtualGamepad(room.sprites[1].inputBuffer)
     room.sprites[1].virtualGamepad = VIRTUAL_GAMEPAD
-
-    room.platforms = systems.discoPlatform.entities
 
     systems.playerPhysics:add_entity(room.sprites[1])
 
@@ -80,6 +82,12 @@ function restart()
         local e = systems.discoPlatform.entities[i]
         systems.suspensionPlatform:add_entity(e)
         e.room = room
+
+        table.insert(room.platforms, e)
+    end
+
+    for _, tp in pairs(systems.texturedPlatform.entities) do
+        table.insert(room.platforms, tp)
     end
 
     for i = 1, #room.sprites do
@@ -98,7 +106,7 @@ function restart()
     BUTTONS = {}
     BUTTONS.jump = 'a'
 
-    FPS_LIMIT = 60
+    SIM_HZ = 60
     timeAccumulator = 0
     frames = 0
     frameTimer = love.timer.getTime()
@@ -134,7 +142,7 @@ function love.update(dt)
         dt = 0.25 -- Avoid spiral of death
     end
 
-    local stepTime = 1 / FPS_LIMIT
+    local stepTime = 1 / SIM_HZ
 
     timeAccumulator = timeAccumulator + dt
     while timeAccumulator >= stepTime do
@@ -211,7 +219,7 @@ function draw_sprites()
             x = x + w
         end
 
-        love.graphics.draw(SPRITE_IMAGE, sprite.skin:get_quad(),
+        love.graphics.draw(TEXTURE, sprite.skin:get_quad(),
                            x, y,
                            0,
                            sx, 1)
@@ -226,7 +234,7 @@ function draw_ground()
 
     love.graphics.setColor(255, 255, 255, 255)
     for x = x1, x2, quadWidth do
-        love.graphics.draw(SPRITE_IMAGE, GROUND_QUAD, x, BASE_SCREEN_H - 2)
+        love.graphics.draw(TEXTURE, GROUND_QUAD, x, BASE_SCREEN_H - 2)
     end
 end
 
@@ -242,6 +250,7 @@ function love.draw()
     systems.star:draw()
     camera:translate()
     systems.discoPlatform:draw()
+    systems.texturedPlatform:draw()
     love.graphics.pop()
 
     -- Draw the canvas (with platforms and stars on it) on the screen
