@@ -8,7 +8,10 @@ require('class.kitty')
 require('class.skin')
 require('class.sprite')
 require('class.virtualgamepad')
+require('system.disco-platform')
 require('system.star')
+require('system.suspension-platform')
+require('system.player-physics')
 
 function love.load()
     love.mouse.setVisible(false)
@@ -24,10 +27,6 @@ function love.load()
 end
 
 function restart()
-    MAX_VELOCITY_X = 1
-    MAX_VELOCITY_Y = 5
-    GRAVITY = .1
-
     SPRITE_IMAGE = love.graphics.newImage('asset/sprites.png')
     ANIM_TEMPLATES = load_animation_templates()
     GROUND_QUAD = love.graphics.newQuad(
@@ -38,57 +37,56 @@ function restart()
     soundSources = {jump = love.audio.newSource('asset/jump.wav')}
 
     systems = {}
+    systems.discoPlatform = DiscoPlatformSystem()
+    systems.playerPhysics = PlayerPhysicsSystem()
     systems.star = StarSystem()
+    systems.suspensionPlatform = SuspensionPlatform()
 
-    PALETTE = {}
-    PALETTE[1] = {7, 148, 202} -- blue
-    PALETTE[2] = {226, 31, 149} -- purple
-    PALETTE[3] = {249, 124, 57} -- orange
-    PALETTE[4] = {254, 224, 76} -- yellow
-    PALETTE[5] = {124, 210, 109} -- green
+    -- Assign explicit update-order to systems that require it
+    systemUpdateOrderMap = {
+        systems.playerPhysics,
+        systems.suspensionPlatform}
 
-    camera = Camera()
-    sprites = {}
-    sprites[1] = Kitty()
-    VIRTUAL_GAMEPAD = VirtualGamepad(sprites[1].inputBuffer)
-    sprites[1].virtualGamepad = VIRTUAL_GAMEPAD
-
-    room = {}
-    room.platforms = {}
-    local platforms = room.platforms
-
-    local y = -100
-    local i = 0
-    while y < BASE_SCREEN_H - 10 do
-        i = i + 1
-
-        platforms[i] = {}
-        platforms[i].position = {x = love.math.random(-100, 100), y = y}
-        platforms[i].size = {w = love.math.random(5, 30),
-                             h = love.math.random(4, 8)}
-
-        local paletteIndex = love.math.random(1, #PALETTE)
-        platforms[i].colorState = {srcIndex = paletteIndex}
-        shift_platform_color(platforms[i])
-
-        -- Prevent this platform from overlapping with another platform
-        local anyOverlap
-        repeat
-            anyOverlap = false
-            for j = 1, i - 1 do
-                while box_overlap(platforms[i], platforms[j]) do
-                    -- Move this platform a little
-                    platforms[i].position.x = platforms[i].position.x - 1
-                    platforms[i].position.y = platforms[i].position.y - 1
-                    anyOverlap = true
-                end
-            end
-        until anyOverlap == false
-
-        y = y + love.math.random(1, 8)
+    -- Assign arbitrary update-order to any remaining systems 
+    for _, system in pairs(systems) do
+        if not table_contains_value(systemUpdateOrderMap, system) then
+            table.insert(systemUpdateOrderMap, system)
+        end
     end
 
-    sprites[1].room = room
+    --for k, v in pairs(systemUpdateOrderMap) do
+    --    local name
+    --    for n, system in pairs(systems) do
+    --        if system == v then
+    --            name = n
+    --        end
+    --    end
+
+    --    print(k, name)
+    --end
+
+    room = {}
+    room.sprites = {}
+
+    room.sprites[1] = Kitty()
+    VIRTUAL_GAMEPAD = VirtualGamepad(room.sprites[1].inputBuffer)
+    room.sprites[1].virtualGamepad = VIRTUAL_GAMEPAD
+
+    room.platforms = systems.discoPlatform.entities
+
+    systems.playerPhysics:add_entity(room.sprites[1])
+
+    for i = 1, #systems.discoPlatform.entities do
+        local e = systems.discoPlatform.entities[i]
+        systems.suspensionPlatform:add_entity(e)
+        e.room = room
+    end
+
+    for i = 1, #room.sprites do
+        room.sprites[i].room = room
+    end
+
+    camera = Camera()
 
     KEYS = {}
     KEYS.up = 'w'
@@ -143,28 +141,31 @@ function love.update(dt)
         frames = frames + 1
         timeAccumulator = timeAccumulator - stepTime
 
-        systems.star:update()
-
-        for i = 1, #sprites do
-            sprites[i]:process_input()
+        -- Pre-update all systems
+        for _, system in pairs(systems) do
+            system:pre_update()
         end
 
-        do_physics()
-
-        for i = 1, #room.platforms do
-            room.platforms[i].hasOccupant = false
-            shift_platform_color(room.platforms[i])
+        -- Process Input
+        for i = 1, #room.sprites do
+            room.sprites[i]:process_input()
         end
 
-        for i = 1, #sprites do
-            local sprite = sprites[i]
+        -- Update all systems
+        for i = 1, #systemUpdateOrderMap do
+            systemUpdateOrderMap[i]:update()
+        end
+
+        -- Update sprites (TODO make this into a system)
+        for i = 1, #room.sprites do
+            local sprite = room.sprites[i]
 
             sprite:update_animation_state(stepTime)
             sprite:post_update_animation_state()
             sprite.skin:update(stepTime)
         end
 
-        camera:update(sprites[1])
+        camera:update(room.sprites[1])
     end
 
     if love.timer.getTime() >= frameTimer + 1 then
@@ -172,117 +173,6 @@ function love.update(dt)
 
         frameTimer = love.timer.getTime()
         frames = 0
-    end
-end
-
-function check_for_y_collision(sprite, endY)
-    local startY = sprite.position.y
-
-    if sprite.velocity.y <= 0 or endY <= startY then
-        return false
-    end
-
-    local groundY = BASE_SCREEN_H - 2
-
-    -- Check all pixels (between the current position and the post-velocity
-    -- position) for collisions, on the Y-axis only
-    local hit = false
-    local testPosition = {x = sprite.position.x}
-    for y = startY, endY do
-        testPosition.y = y
-
-        -- If the sprite would be on the ground
-        local hitBox = sprite:get_collision_box(testPosition)
-        if hitBox.y + hitBox.h >= groundY then
-            hit = true
-        end
-
-        if not hit and not sprite.fallThroughPlatform then
-            -- Check for collision with platforms
-            local platforms = room.platforms
-            for j = 1, #platforms do
-                if sprite:is_on_platform(testPosition, platforms[j]) then
-                    hit = true
-                    break
-                end
-            end
-        end
-
-        if hit then
-            -- Move the sprite to this position
-            sprite.position.y = y
-
-            -- Mark the sprite as being on a platform
-            sprite.onPlatform = true
-
-            -- If the sprite is falling too fast to survive the impact
-            if sprite.velocity.y >= MAX_VELOCITY_Y then
-                if sprite.checkpointPosition then
-                    sprite.hitPlatformTooHard = true
-                end
-            else
-                if not sprite.hitPlatformTooHard then
-                    sprite.checkpointPosition = {x = sprite.position.x,
-                                                 y = sprite.position.y}
-                end
-            end
-
-            -- Stop the Y-axis velocity
-            sprite.velocity.y = 0
-
-            break
-        end
-    end
-
-    return hit
-end
-
-function do_physics()
-    -- Apply gravity
-    for i = 1, #sprites do
-        if sprites[i].fallThroughPlatform then
-            sprites[i].velocity.y = 1
-        else
-            sprites[i].velocity.y = sprites[i].velocity.y + GRAVITY
-        end
-    end
-
-    -- Apply velocity
-    for i = 1, #sprites do
-        local sprite = sprites[i]
-
-        -- Limit X-axis velocity to top speed
-        if sprite.velocity.x < -MAX_VELOCITY_X then
-            sprite.velocity.x = -MAX_VELOCITY_X
-        elseif sprite.velocity.x > MAX_VELOCITY_X then
-            sprite.velocity.x = MAX_VELOCITY_X
-        end
-
-        -- Enforce y-axis terminal velocity
-        if sprite.velocity.y > MAX_VELOCITY_Y then
-            sprite.velocity.y = MAX_VELOCITY_Y
-        end
-
-        -- Apply X-axis velocity
-        sprite.position.x = sprite.position.x + sprite.velocity.x
-
-        local hit = false
-        local newY = sprite.position.y + sprite.velocity.y
-        if sprite.velocity.y > 0 then
-            hit = check_for_y_collision(sprite, newY)
-        end
-
-        if not hit then
-            -- Apply Y-axis velocity
-            sprite.position.y = newY
-        end
-
-        -- If the sprite is still moving downward (it didn't collide)
-        if sprite.velocity.y >= 1 then
-            sprite.onPlatform = false
-        end
-
-        sprite.fallThroughPlatform = false
     end
 end
 
@@ -301,80 +191,11 @@ function love.keypressed(key)
     end
 end
 
-function shift_platform_color(platform)
-    if not platform.colorState.destIndex then
-        local delta
-        if love.math.random(0, 1) == 0 then
-            delta = -1
-        else
-            delta = 1
-        end
-
-        --local delta = 1--love.math.random(1, #PALETTE - 1)
-        platform.colorState.destIndex = platform.colorState.srcIndex + delta
-        if platform.colorState.destIndex < 1 then
-            platform.colorState.destIndex = #PALETTE
-        elseif platform.colorState.destIndex > #PALETTE then
-            platform.colorState.destIndex = platform.colorState.destIndex - 
-                #PALETTE
-        end
-
-        platform.colorState.percent = 0
-        platform.color = {}
-    end
-
-    for i = 1, 3 do
-        local src = PALETTE[platform.colorState.srcIndex][i]
-        local dest = PALETTE[platform.colorState.destIndex][i]
-        local percent = platform.colorState.percent
-
-        platform.color[i] = src + (percent * (dest - src))
-    end
-
-    local changeDelta = .005
-    platform.colorState.percent = platform.colorState.percent + changeDelta
-
-    -- If we have reached the destination color
-    if platform.colorState.percent >= 1 then
-        platform.colorState.srcIndex = platform.colorState.destIndex
-        platform.colorState.destIndex = nil
-    end
-end
-
-function draw_platforms()
-    love.graphics.setLineWidth(1)
-    love.graphics.setLineStyle('rough')
-
-    local platforms = room.platforms
-    for i = 1, #platforms do
-        local platform = platforms[i]
-
-        local drawMode, x, y, w, h
-        x = platform.position.x
-        y = platform.position.y
-        w = platform.size.w
-        h = platform.size.h
-
-        if platform.hasOccupant then
-            drawMode = 'fill'
-        else
-            drawMode = 'line'
-            x = x + 1
-            y = y + 1
-            w = w - 1
-            h = h - 1
-        end
-
-        love.graphics.setColor(platform.color)
-        love.graphics.rectangle(drawMode, x, y, w, h)
-    end
-end
-
 function draw_sprites()
     love.graphics.setColor(255, 255, 255)
 
-    for i = 1, #sprites do
-        local sprite = sprites[i]
+    for i = 1, #room.sprites do
+        local sprite = room.sprites[i]
 
         local w = sprite.skin:get_width()
         local h = sprite.skin:get_height()
@@ -420,7 +241,7 @@ function love.draw()
     love.graphics.clear()
     systems.star:draw()
     camera:translate()
-    draw_platforms()
+    systems.discoPlatform:draw()
     love.graphics.pop()
 
     -- Draw the canvas (with platforms and stars on it) on the screen

@@ -8,10 +8,20 @@ function tables_have_equal_values(t1, t2)
     return true
 end
 
-function copy_table(t1)
+function table_contains_value(t, value)
+    for k, v in pairs(t) do
+        if v == value then
+            return true
+        end
+    end
+
+    return false
+end
+
+function copy_table(t)
     t2 = {}
 
-    for k, v in pairs(t1) do
+    for k, v in pairs(t) do
         t2[k] = v
     end
 

@@ -27,9 +27,11 @@ function Sprite:is_on_platform(testPosition, platform)
 
     local box = self:get_collision_box(testPosition)
 
-    if box.y + box.h == platform.position.y and
-       box.x + (box.w - 1) > platform.position.x and
-       box.x < platform.position.x + platform.size.w then
+    local platformPos = align_to_grid(platform.position)
+
+    if box.y + box.h == platformPos.y and
+       box.x + (box.w - 1) > platformPos.x and
+       box.x < platformPos.x + platform.size.w then
         return true
     else
         return false
@@ -40,10 +42,10 @@ function Sprite:fall()
     if not self.onPlatform then return end
 
     self.onPlatform = false
-    self.fallThroughPlatform = true
+    self.fallingThroughPlatform = true
 end
 
-function Sprite:jump(fall)
+function Sprite:jump()
     if not self.onPlatform or self.hitPlatformTooHard then return end
 
 

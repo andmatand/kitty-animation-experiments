@@ -28,12 +28,21 @@ function anim_is_playing(skin, animKey)
     end
 end
 
+function Kitty:warp_to_platform(platform)
+    self.position = {
+        x = platform.position.x + (platform.size.w / 2) -
+            (self.skin:get_width() / 2),
+        y = platform.position.y - self.skin:get_height()}
+end
+
 function Kitty:update_animation_state(dt)
     if self.skin:get_anim() == 'splat' and
         self.skin.currentAnimation:is_stopped()
     then
-        self.position = {x = self.checkpointPosition.x,
-                         y = self.checkpointPosition.y}
+        if self.checkpointPlatform then
+            self:warp_to_platform(self.checkpointPlatform)
+        end
+
         self.hitPlatformTooHard = false
     end
 
@@ -48,7 +57,7 @@ function Kitty:update_animation_state(dt)
             self.skin:set_anim('walk')
         end
 
-        TURN_VELOCITY = MAX_VELOCITY_X * .5
+        TURN_VELOCITY = PlayerPhysicsSystem.MAX_VELOCITY_X * .5
 
         -- It we are skidding from changing direction suddenly while moving
         if (self.dir == 2 and self.velocity.x <= -TURN_VELOCITY or
@@ -114,8 +123,6 @@ function Kitty:is_over_edge_of_platform()
     if not platform then
         return false
     end
-
-    platform.hasOccupant = true
 
     if self.position.x + (self.skin:get_width() - 1) - 1 >
        platform.position.x + platform.size.w then

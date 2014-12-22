@@ -37,6 +37,6 @@ function set_fullscreen(enable)
 end
 
 function align_to_grid(position)
-    return {x = math.floor((position.x * GRAPHICS_SCALE) / GRAPHICS_SCALE),
-            y = math.floor((position.y * GRAPHICS_SCALE) / GRAPHICS_SCALE)}
+    return {x = math.floor(position.x),
+            y = math.floor(position.y)}
 end

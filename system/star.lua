@@ -1,6 +1,7 @@
+require('class.system')
 require('util.tables')
 
-StarSystem = Object:extend()
+StarSystem = System:extend()
 
 function StarSystem:new()
     self.entities = {}

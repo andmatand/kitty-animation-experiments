@@ -11,6 +11,28 @@ function Camera:new()
     self.velocity = {x = 0, y = 0}
 end
 
+function Camera:screen_scroll(player)
+    local target = {x = player.position.x + player.skin:get_width() / 2,
+                    y = player.position.y + player.skin:get_height() / 2}
+
+    local screen = self:get_screen_position()
+    screen.w = BASE_SCREEN_W
+    screen.h = BASE_SCREEN_H
+    print(screen.x, screen.y)
+
+    if target.x < screen.x then
+        self.velocity.x = -BASE_SCREEN_W
+    elseif target.x > screen.x + screen.w then
+        self.velocity.x = BASE_SCREEN_W
+    end
+
+    if target.y < screen.y then
+        self.velocity.y = -BASE_SCREEN_H
+    elseif target.y > screen.y + screen.h then
+        self.velocity.y = BASE_SCREEN_H
+    end
+end
+
 function Camera:move_toward(player)
     local x1, x2, y1, y2
     x1 = math.floor(player.position.x)
@@ -65,6 +87,7 @@ end
 
 function Camera:update(player)
     self:move_toward(player)
+    --self:screen_scroll(player)
     self:do_physics()
 end
 
