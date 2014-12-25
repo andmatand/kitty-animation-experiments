@@ -47,7 +47,7 @@ function SpriteInputBuffer:process_direction_event(direction, amount)
     if direction == 4 then
         if self.sprite.dir ~= 4 then
             self.sprite.dir = 4
-            velocityDelta.x = velocityDelta.x * 1.25
+            velocityDelta.x = velocityDelta.x * 2
         end
 
         self.sprite.velocity.x = self.sprite.velocity.x - velocityDelta.x
@@ -57,7 +57,7 @@ function SpriteInputBuffer:process_direction_event(direction, amount)
     elseif direction == 2 then
         if self.sprite.dir ~= 2 then
             self.sprite.dir = 2
-            velocityDelta.x = velocityDelta.x * 1.25
+            velocityDelta.x = velocityDelta.x * 2
         end
 
         self.sprite.velocity.x = self.sprite.velocity.x + velocityDelta.x
