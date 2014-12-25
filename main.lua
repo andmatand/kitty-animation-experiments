@@ -94,6 +94,10 @@ function restart()
         room.sprites[i].room = room
     end
 
+    -- Make sure the player is right on top of the first textured platform
+    local firstPlatform = systems.texturedPlatform.entities[1]
+    room.sprites[1]:warp_to_platform(firstPlatform)
+
     camera = Camera()
 
     KEYS = {}
