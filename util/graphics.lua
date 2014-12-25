@@ -21,7 +21,7 @@ function set_graphics_offset()
     GRAPHICS_Y = (h / 2) - ((BASE_SCREEN_H * GRAPHICS_SCALE) / 2)
 end
 
-function scale_and_letterbox()
+function determine_scale_and_letterboxing()
     set_graphics_scale()
     set_graphics_offset()
 end
@@ -33,7 +33,7 @@ function set_fullscreen(enable)
         love.window.setFullscreen(false)
     end
 
-    scale_and_letterbox()
+    determine_scale_and_letterboxing()
 end
 
 function align_to_grid(position)

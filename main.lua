@@ -19,7 +19,7 @@ function love.load()
     love.graphics.setDefaultFilter('nearest', 'nearest')
     set_fullscreen(false)
 
-    canvas = love.graphics.newCanvas(BASE_SCREEN_W, BASE_SCREEN_H)
+    CANVAS = love.graphics.newCanvas(BASE_SCREEN_W, BASE_SCREEN_H)
 
     shaders = {}
     shaders.bloom = love.graphics.newShader('shader/bloom.lsl')
@@ -242,47 +242,58 @@ function draw_ground()
     end
 end
 
+function draw_canvas_to_screen(shader)
+    love.graphics.push()
+
+    love.graphics.setCanvas()
+    love.graphics.translate(GRAPHICS_X, GRAPHICS_Y)
+
+    if shader then
+        love.graphics.setShader(shader)
+    end
+
+    love.graphics.draw(CANVAS, 0, 0, 0, GRAPHICS_SCALE, GRAPHICS_SCALE)
+
+    if shader then
+        love.graphics.setShader()
+    end
+
+    love.graphics.pop()
+end
+
 function love.draw()
+    determine_scale_and_letterboxing()
+
     love.graphics.setBackgroundColor(0, 0, 0)
     love.graphics.clear()
 
     -- Draw the platforms and stars on the canvas
     love.graphics.push()
-    love.graphics.setCanvas(canvas)
+    love.graphics.setCanvas(CANVAS)
     love.graphics.setBackgroundColor(10, 10, 10, 255)
     love.graphics.clear()
     systems.star:draw()
     camera:translate()
     systems.discoPlatform:draw()
-    systems.texturedPlatform:draw()
     love.graphics.pop()
 
-    -- Draw the canvas (with platforms and stars on it) on the screen
-    love.graphics.setCanvas()
-    love.graphics.push()
-    scale_and_letterbox()
-    love.graphics.translate(GRAPHICS_X, GRAPHICS_Y)
-    love.graphics.setShader(shaders.bloom)
-    love.graphics.draw(canvas, 0, 0, 0, GRAPHICS_SCALE, GRAPHICS_SCALE)
-    love.graphics.setShader()
-    love.graphics.pop()
+    -- Draw the canvas (with disco platforms and stars on it) on the screen,
+    -- with the bloom shader
+    draw_canvas_to_screen(shaders.bloom)
 
-    -- Draw the sprites on the canvas
+    -- Draw the textured platforms, ground, and sprites on the canvas
     love.graphics.push()
-    love.graphics.setCanvas(canvas)
+    love.graphics.setCanvas(CANVAS)
     love.graphics.setBackgroundColor(0, 0, 0, 0)
     love.graphics.clear()
     camera:translate()
+    systems.texturedPlatform:draw()
     draw_ground()
     draw_sprites()
     love.graphics.pop()
 
     -- Draw the sprite canvas on the screen
-    love.graphics.push()
-    love.graphics.setCanvas()
-    love.graphics.translate(GRAPHICS_X, GRAPHICS_Y)
-    love.graphics.draw(canvas, 0, 0, 0, GRAPHICS_SCALE, GRAPHICS_SCALE)
-    love.graphics.pop()
+    draw_canvas_to_screen()
 
     -- Display FPS
     love.graphics.setColor(255, 255, 255)
