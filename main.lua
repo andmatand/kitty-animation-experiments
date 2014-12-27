@@ -328,13 +328,4 @@ function love.draw()
     -- Display FPS
     love.graphics.setColor(255, 255, 255)
     love.graphics.print('FPS: ' .. love.timer.getFPS(), 1, 1)
-    if JOYSTICK then
-        love.graphics.print('axis 1:' .. JOYSTICK:getAxis(1), 1, 10)
-        love.graphics.print('axis 2:' .. JOYSTICK:getAxis(2), 1, 20)
-        for i = 1, JOYSTICK:getButtonCount() do
-            love.graphics.print(
-                'button ' .. i .. ':' ..
-                (JOYSTICK:isDown(i) and '1' or '0'), 1, 20 + (10 * i))
-        end
-    end
 end
