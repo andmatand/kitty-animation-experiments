@@ -28,7 +28,7 @@ function love.load()
 end
 
 function restart()
-    TEXTURE = love.graphics.newImage('asset/sprites.png')
+    TEXTURE = love.graphics.newImage('asset/texture.png')
     ANIM_TEMPLATES = load_animation_templates()
     GRASS_QUADS = create_quads(TEXTURE, {x = 0, y = 53}, {w = 8, h = 8}, 3)
     GROUND_QUAD = love.graphics.newQuad(
