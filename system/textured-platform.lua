@@ -21,7 +21,7 @@ function TexturedPlatformSystem:init_random()
     e.position = {x = love.math.random(-10, 10),
                   y = love.math.random(-10, 10)}
     e.terrainType = 1
-    e.size = {w = 8 * 3, h = 8}
+    e.size = {w = 8 * 7, h = 8}
 
     self:add_entity(e)
 end
