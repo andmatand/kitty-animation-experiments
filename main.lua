@@ -68,6 +68,33 @@ function restart()
     --    print(k, name)
     --end
 
+    -- Emulate a gamepad by treating each keyboard direction key as 100% along
+    -- its axis
+    KEYBOARD_AXIS_MAP = {
+        leftx = {a = -1, left = -1,
+                 d = 1, right = 1},
+        lefty = {w = -1, up = -1,
+                 s = 1, down = 1},
+    }
+
+    KEYBOARD_BUTTON_MAP = {
+        a = {'k', 'space'},
+        start = 'f5',
+        back = 'escape'
+    }
+
+    JOYSTICK_AXIS_MAP = {
+        leftx = 1,
+        lefty = 2,
+    }
+
+    JOYSTICK_BUTTON_MAP = {
+        a = 1,
+        b = 2,
+        start = 10,
+        back = 9
+    }
+
     room = {}
     room.sprites = {}
     room.platforms = {}
@@ -100,15 +127,6 @@ function restart()
 
     camera = Camera()
 
-    KEYS = {}
-    KEYS.up = 'w'
-    KEYS.down = 's'
-    KEYS.left = 'a'
-    KEYS.right = 'd'
-    KEYS.jump = 'k'
-
-    BUTTONS = {}
-    BUTTONS.jump = 'a'
 
     SIM_HZ = 60
     timeAccumulator = 0
@@ -119,24 +137,39 @@ end
 
 function love.joystickadded(joystick)
     if joystick:isGamepad() then
-        GAMEPAD = joystick
+        -- If there is no current gamepad
+        if not GAMEPAD then
+            -- Set the current gamepad to this new one
+            GAMEPAD = joystick
+            JOYSTICK = nil
+        end
+    else
+        -- If there is no current joystick or gamepad
+        if not JOYSTICK and not GAMEPAD then
+            -- Set the current joystick to this new one
+            JOYSTICK = joystick
+            GAMEPAD = nil
+        end
     end
 end
 
+function love.joystickpressed(joystick, button)
+    if joystick == GAMEPAD then return end
+
+    -- Set the current joystick to this one
+    JOYSTICK = joystick
+    GAMEPAD = nil
+
+    VIRTUAL_GAMEPAD:joystickpressed(joystick, button)
+end
+
 function love.gamepadpressed(joystick, button)
+    print('gamepadpressed')
+    -- Set the current gamepad to this one
     GAMEPAD = joystick
+    JOYSTICK = nil
 
-    if GAMEPAD then
-        VIRTUAL_GAMEPAD:gamepadpressed(joystick, button)
-    else
-        love.joystickadded(joystick)
-    end
-
-    if button == 'start' then
-        restart()
-    elseif button == 'back' then
-        love.event.quit()
-    end
+    VIRTUAL_GAMEPAD:buttonpressed(button)
 end
 
 function love.update(dt)
@@ -191,13 +224,10 @@ end
 function love.keypressed(key)
     if key == 'f11' then
         set_fullscreen(not love.window.getFullscreen())
-    elseif key == 'f5' then
-        restart()
-    elseif key == 'escape' then
-        love.event.quit()
     else
-        -- Disable gamepad input
+        -- Disable gamepad and joystick input
         GAMEPAD = nil
+        JOYSTICK = nil
         
         VIRTUAL_GAMEPAD:keypressed(key)
     end
@@ -298,4 +328,13 @@ function love.draw()
     -- Display FPS
     love.graphics.setColor(255, 255, 255)
     love.graphics.print('FPS: ' .. love.timer.getFPS(), 1, 1)
+    if JOYSTICK then
+        love.graphics.print('axis 1:' .. JOYSTICK:getAxis(1), 1, 10)
+        love.graphics.print('axis 2:' .. JOYSTICK:getAxis(2), 1, 20)
+        for i = 1, JOYSTICK:getButtonCount() do
+            love.graphics.print(
+                'button ' .. i .. ':' ..
+                (JOYSTICK:isDown(i) and '1' or '0'), 1, 20 + (10 * i))
+        end
+    end
 end

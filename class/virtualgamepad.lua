@@ -2,26 +2,39 @@ VirtualGamepad = Object:extend()
 
 function VirtualGamepad:new(spriteInputBuffer)
     self.spriteInputBuffer = spriteInputBuffer
+
+    self:refresh_map_reverse_lookup_cache()
+end
+
+function VirtualGamepad:refresh_map_reverse_lookup_cache()
+    self.keyToButtonMap = {}
+    for button, keyOrKeys in pairs(KEYBOARD_BUTTON_MAP) do
+        if type(keyOrKeys) == 'string' then
+            self.keyToButtonMap[keyOrKeys] = button
+        elseif type(keyOrKeys) == 'table' then
+            for _, key in pairs(keyOrKeys) do
+                self.keyToButtonMap[key] = button
+            end
+        end
+    end
+
+    self.joystickButtonToGamepadButtonMap = {}
+    for gamepadButton, joystickButton in pairs(JOYSTICK_BUTTON_MAP) do
+        self.joystickButtonToGamepadButtonMap[joystickButton] = gamepadButton
+    end
 end
 
 function VirtualGamepad:get_axis(axis)
     if GAMEPAD then
         return GAMEPAD:getGamepadAxis(axis)
+    elseif JOYSTICK then
+        local joystickAxis = JOYSTICK_AXIS_MAP[axis]
+        return JOYSTICK:getAxis(joystickAxis)
     else
-        -- Emulate a gamepad by treating each keyboard direction key as 100%
-        -- along its axis
-        if axis == 'leftx' then
-            if love.keyboard.isDown(KEYS.left) then
-                return -1
-            else if love.keyboard.isDown(KEYS.right) then
-                return 1
-            end
-        end
-        elseif axis == 'lefty' then
-            if love.keyboard.isDown(KEYS.up) then
-                return -1
-            elseif love.keyboard.isDown(KEYS.down) then
-                return 1
+        local keys = KEYBOARD_AXIS_MAP[axis]
+        for key, value in pairs(keys) do
+            if love.keyboard.isDown(key) then
+                return value
             end
         end
     end
@@ -29,34 +42,55 @@ function VirtualGamepad:get_axis(axis)
     return 0
 end
 
-function VirtualGamepad:is_down(gameButton)
+function VirtualGamepad:is_down(button)
     if GAMEPAD then
-        return GAMEPAD:isGamepadDown(BUTTONS[gameButton])
+        return GAMEPAD:isGamepadDown(button)
+    elseif JOYSTICK then
+        local joystickButton = JOYSTICK_BUTTON_MAP[button]
+        return JOYSTICK:isDown(joystickButton)
     else
-        return love.keyboard.isDown(KEYS[gameButton])
+        local keys = KEYBOARD_BUTTON_MAP[button]
+        if type(keys) == 'string' then
+            return love.keyboard.isDown(keys)
+        elseif type(keys) == 'table' then
+            for _, keyname in pairs(keys) do
+                if love.keyboard.isDown(keyname) then
+                    return true
+                end
+            end
+
+            return false
+        end
     end
 end
 
-function VirtualGamepad:gamepadpressed(joystick, button)
-    if joystick ~= GAMEPAD then return end
-
-    if button == BUTTONS.jump then
+function VirtualGamepad:buttonpressed(button)
+    print('button pressed: ', button)
+    if button == 'a' then
         -- If the lefty axis is down
         if self:get_axis('lefty') >= AXIS_DEADZONE then
             self.spriteInputBuffer:push('fall')
         end
 
         self.spriteInputBuffer:push('jump')
+    elseif button == 'start' then
+        restart()
+    elseif button == 'back' then
+        love.event.quit()
+    end
+end
+
+function VirtualGamepad:joystickpressed(joystick, button)
+    local gamepadButton = self.joystickButtonToGamepadButtonMap[button]
+    if gamepadButton then
+        self:buttonpressed(gamepadButton)
     end
 end
 
 function VirtualGamepad:keypressed(key)
-    if key == KEYS.jump then
-        if self:get_axis('lefty') >= AXIS_DEADZONE then
-            self.spriteInputBuffer:push('fall')
-        end
-
-        self.spriteInputBuffer:push('jump')
+    local gamepadButton = self.keyToButtonMap[key]
+    if gamepadButton then
+        self:buttonpressed(gamepadButton)
     end
 end
 

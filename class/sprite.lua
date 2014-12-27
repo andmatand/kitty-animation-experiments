@@ -60,7 +60,7 @@ end
 
 function Sprite:process_input()
     -- If we are moving upwards and the jump button is not being held
-    if self.velocity.y < 0 and not self.virtualGamepad:is_down('jump') then
+    if self.velocity.y < 0 and not self.virtualGamepad:is_down('a') then
         if self.velocity.y < -1 then
             self.velocity.y = -1
         end
