@@ -65,7 +65,6 @@ function VirtualGamepad:is_down(button)
 end
 
 function VirtualGamepad:buttonpressed(button)
-    print('button pressed: ', button)
     if button == 'a' then
         -- If the lefty axis is down
         if self:get_axis('lefty') >= AXIS_DEADZONE then
