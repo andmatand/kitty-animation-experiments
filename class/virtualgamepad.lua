@@ -72,10 +72,10 @@ function VirtualGamepad:buttonpressed(button)
         end
 
         self.spriteInputBuffer:push('jump')
+    elseif button == 'start' and self:is_down('back') then
+        love.event.quit()
     elseif button == 'start' then
         restart()
-    elseif button == 'back' then
-        love.event.quit()
     end
 end
 
