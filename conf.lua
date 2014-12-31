@@ -8,4 +8,18 @@ function love.conf(t)
     t.window.vsync = true
 
     AXIS_DEADZONE = .2
+
+    -- Until I add in-game options to bind controller axes/buttons, the values
+    -- below can be changed to support joysticks that SDL2 doesn't
+    -- automatically recognize as a standardized Xbox 360-like "gamepad"
+    JOYSTICK_AXIS_MAP = {
+        leftx = 1,
+        lefty = 2,
+    }
+    JOYSTICK_BUTTON_MAP = {
+        a = 1,
+        b = 2,
+        start = 10,
+        back = 9
+    }
 end

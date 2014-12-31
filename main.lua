@@ -84,21 +84,9 @@ function restart()
     }
 
     KEYBOARD_BUTTON_MAP = {
-        a = {'k', 'space'},
+        a = {'k', ' '},
         start = 'f5',
         back = 'escape'
-    }
-
-    JOYSTICK_AXIS_MAP = {
-        leftx = 1,
-        lefty = 2,
-    }
-
-    JOYSTICK_BUTTON_MAP = {
-        a = 1,
-        b = 2,
-        start = 10,
-        back = 9
     }
 
     room = {}
@@ -146,38 +134,43 @@ function restart()
 end
 
 function love.joystickadded(joystick)
-    if joystick:isGamepad() then
-        -- If there is no current gamepad
-        if not GAMEPAD then
-            -- Set the current gamepad to this new one
-            GAMEPAD = joystick
-            JOYSTICK = nil
+    -- If there is no current joystick
+    if not JOYSTICK then
+        -- Set the current joystick pointer to this new one
+        JOYSTICK = joystick
+    end
+
+    -- If this joystick is not a recognized gamepad
+    if not joystick:isGamepad() then
+        for gamepadButton, index in pairs(JOYSTICK_BUTTON_MAP) do
+            local success = love.joystick.setGamepadMapping(
+                joystick:getGUID(), gamepadButton, 'button', index)
+
+            if not success then
+                print('failed to map input for button ' .. gamepadButton)
+            end
         end
-    else
-        -- If there is no current joystick or gamepad
-        if not JOYSTICK and not GAMEPAD then
-            -- Set the current joystick to this new one
-            JOYSTICK = joystick
-            GAMEPAD = nil
+
+        for gamepadAxis, index in pairs(JOYSTICK_AXIS_MAP) do
+            local success = love.joystick.setGamepadMapping(
+                joystick:getGUID(), gamepadAxis, 'axis', index)
         end
     end
 end
 
-function love.joystickpressed(joystick, button)
-    if joystick == GAMEPAD then return end
-
-    -- Set the current joystick to this one
-    JOYSTICK = joystick
-    GAMEPAD = nil
-
-    VIRTUAL_GAMEPAD:joystickpressed(joystick, button)
+function love.gamepadaxis(joystick, axis, value)
+    -- If your pet cat didn't accidentally bump the controller
+    if value > AXIS_DEADZONE then
+        -- Set the current joystick to this one
+        JOYSTICK = joystick
+    end
 end
 
 function love.gamepadpressed(joystick, button)
-    -- Set the current gamepad to this one
-    GAMEPAD = joystick
-    JOYSTICK = nil
+    -- Set the current joystick to this one
+    JOYSTICK = joystick
 
+    -- Send the button-press to the VirtualGamepad
     VIRTUAL_GAMEPAD:buttonpressed(button)
 end
 
@@ -234,10 +227,10 @@ function love.keypressed(key)
     if key == 'f11' then
         set_fullscreen(not love.window.getFullscreen())
     else
-        -- Disable gamepad and joystick input
-        GAMEPAD = nil
+        -- Disable joystick input
         JOYSTICK = nil
         
+        -- Send the keypress to the VirtualGamepad
         VIRTUAL_GAMEPAD:keypressed(key)
     end
 end
