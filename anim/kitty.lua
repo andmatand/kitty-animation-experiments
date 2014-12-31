@@ -6,6 +6,8 @@ local quads = create_quads(TEXTURE, {x = 0, y = 0}, size, 13)
 
 local templates = {}
 templates.default    = AnimationTemplate({{1, 0}}, quads)
+templates.crouch     = AnimationTemplate({{5, 0}}, quads)
+templates.crouch_cliff = AnimationTemplate({{12, 0}}, quads)
 templates.walk       = AnimationTemplate({{2, .1}, {1, .1}}, quads, true)
 templates.blink      = AnimationTemplate({{3, .1}}, quads)
 templates.idle       = AnimationTemplate({{4, .25}}, quads)

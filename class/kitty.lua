@@ -96,6 +96,16 @@ function Kitty:update_animation_state(dt)
         self.skin.currentAnimation:rewind()
     end
 
+    if self.isCrouching and self.onPlatform and not self.moved then
+        if self:is_over_edge_of_platform() then
+            self.skin:set_anim('crouch_cliff')
+        else
+            self.skin:set_anim('crouch')
+        end
+        self.skin.currentAnimation:rewind()
+    end
+
+
     if self.skin:get_anim() == 'default' then
         if self.blinkTimer:update(dt) then
             if love.math.random(0, 1) == 0 then

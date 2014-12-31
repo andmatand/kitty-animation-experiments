@@ -11,6 +11,8 @@ function SpriteInputBuffer:push(event)
 end
 
 function SpriteInputBuffer:process()
+    self.sprite.isCrouching = false
+
     -- Process all input events in the queue
     for _, event in pairs(self.queue) do
         if type(event) == 'table' then
@@ -62,5 +64,9 @@ function SpriteInputBuffer:process_direction_event(direction, amount)
 
         self.sprite.velocity.x = self.sprite.velocity.x + velocityDelta.x
         self.sprite.moved = true
+
+    -- Down
+    elseif direction == 3 and self.sprite.onPlatform then
+        self.sprite.isCrouching = true
     end
 end

@@ -1,4 +1,5 @@
 require('class.system')
+require('util.box')
 
 DiscoPlatformSystem = System:extend()
 
@@ -80,7 +81,9 @@ function DiscoPlatformSystem:init_random()
         repeat
             anyOverlap = false
             for j = 1, i - 1 do
-                while box_overlap(platforms[i], platforms[j]) do
+                local margin = {w = 4, h = 4}
+
+                while box_overlap_margin(platforms[i], platforms[j], margin) do
                     -- Move this platform a little
                     platforms[i].position.x = platforms[i].position.x - 1
                     platforms[i].position.y = platforms[i].position.y - 1

@@ -94,11 +94,14 @@ function VirtualGamepad:keypressed(key)
 end
 
 function VirtualGamepad:send_directional_input()
-    local leftx = self:get_axis('leftx') 
+    local leftx = self:get_axis('leftx')
+    local lefty = self:get_axis('lefty')
 
     if leftx <= -AXIS_DEADZONE then
         self.spriteInputBuffer:push({4, leftx}) -- Right
     elseif leftx >= AXIS_DEADZONE then
         self.spriteInputBuffer:push({2, leftx}) -- Left
+    elseif lefty >= AXIS_DEADZONE then
+        self.spriteInputBuffer:push({3, lefty}) -- Down
     end
 end

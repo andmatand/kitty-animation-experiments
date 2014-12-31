@@ -1,6 +1,6 @@
 Object = require('util.oo')
 require('util.anim')
-require('util.sprite')
+require('util.box')
 require('util.graphics')
 require('class.animation')
 require('class.camera')
@@ -10,6 +10,7 @@ require('class.sprite')
 require('class.virtualgamepad')
 require('system.disco-platform')
 require('system.star')
+require('system.ordered-drawing')
 require('system.suspension-platform')
 require('system.textured-platform')
 require('system.player-physics')
@@ -35,6 +36,10 @@ function restart()
         0, 61,
         16, 3,
         TEXTURE:getWidth(), TEXTURE:getHeight())
+    BUSH_QUAD = love.graphics.newQuad(
+        0, 48,
+        6, 5,
+        TEXTURE:getWidth(), TEXTURE:getHeight())
 
     soundSources = {jump = love.audio.newSource('asset/jump.wav')}
 
@@ -44,6 +49,7 @@ function restart()
     systems.star = StarSystem()
     systems.suspensionPlatform = SuspensionPlatformSystem()
     systems.texturedPlatform = TexturedPlatformSystem()
+    systems.orderedDrawing = OrderedDrawingSystem()
 
     -- Assign explicit update-order to systems that require it
     systemUpdateOrderMap = {
@@ -125,11 +131,15 @@ function restart()
     local firstPlatform = systems.texturedPlatform.entities[1]
     room.sprites[1]:warp_to_platform(firstPlatform)
 
+    -- Give the ordered drawing system a pointer to the player
+    systems.orderedDrawing:set_player(room.sprites[1])
+
+    -- Create the camera
     camera = Camera()
 
 
     SIM_HZ = 60
-    timeAccumulator = 0
+    timeAccumulator = 1 / SIM_HZ -- Make sure we update on the first frame
     frames = 0
     frameTimer = love.timer.getTime()
     currentFPS = 0
@@ -164,7 +174,6 @@ function love.joystickpressed(joystick, button)
 end
 
 function love.gamepadpressed(joystick, button)
-    print('gamepadpressed')
     -- Set the current gamepad to this one
     GAMEPAD = joystick
     JOYSTICK = nil
@@ -319,7 +328,9 @@ function love.draw()
     camera:translate()
     systems.texturedPlatform:draw()
     draw_ground()
+    systems.orderedDrawing:draw_background()
     draw_sprites()
+    systems.orderedDrawing:draw_foreground()
     love.graphics.pop()
 
     -- Draw the sprite canvas on the screen

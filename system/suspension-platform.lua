@@ -1,5 +1,5 @@
 require('class.system')
-require('util.sprite')
+require('util.box')
 
 local TIGHTNESS = .15
 local DAMPING = .12
