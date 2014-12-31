@@ -41,35 +41,42 @@ function Camera:move_toward(player)
     y2 = math.floor(player.position.y + player.skin:get_height() - 1)
 
     if x1 < self.position.x then
-        local distance = self.position.x - x1
+        local distance = math.abs(self.position.x - x1)
 
-        if -distance < self.velocity.x then
+        if distance <= PlayerPhysicsSystem.MAX_VELOCITY_X then
             -- Move the camera locked with the player
             self.velocity.x = -distance
+        else
+            -- Move the camera smoothly up to the player
+            self.velocity.x = -distance * .25
         end
     elseif x2 > self.position.x + self.box.w - 1 then
-        local distance = x2 - (self.position.x + self.box.w - 1)
+        local distance = math.abs(x2 - (self.position.x + self.box.w - 1))
 
-        if distance > self.velocity.x then
+        if distance <= PlayerPhysicsSystem.MAX_VELOCITY_X then
             -- Move the camera locked with the player
             self.velocity.x = distance
+        else
+            -- Move the camera smoothly up to the player
+            self.velocity.x = distance * .25
         end
     end
 
     if y1 < self.position.y then
-        local distance = self.position.y - y1
+        local distance = math.abs(self.position.y - y1)
 
-        if -distance < self.velocity.y and player.onPlatform then
+        --if -distance < self.velocity.y and player.onPlatform then
+        if player.onPlatform then
             -- Move the camera smoothly up to the player
             self.velocity.y = -distance * .25
         end
     elseif y2 > self.position.y + self.box.h - 1 then
-        local distance = y2 - (self.position.y + self.box.h - 1)
+        local distance = math.abs(y2 - (self.position.y + self.box.h - 1))
 
-        if distance > self.velocity.y then
+        --if distance > self.velocity.y then
             -- Move the camera locked with the player
             self.velocity.y = distance
-        end
+        --end
     end
 end
 
