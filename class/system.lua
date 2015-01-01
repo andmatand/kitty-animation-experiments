@@ -27,5 +27,8 @@ end
 function System:pre_update()
 end
 
+function System:post_update()
+end
+
 function System:update()
 end

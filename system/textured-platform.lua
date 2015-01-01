@@ -107,6 +107,5 @@ function TexturedPlatformSystem:draw()
         self.spriteBatchIsDirty = false
     end
 
-    love.graphics.setColor(255, 255, 255, 255)
     love.graphics.draw(self.spriteBatch)
 end

@@ -22,8 +22,6 @@ function OrderedDrawingSystem:new()
 end
 
 local function refresh_spritebatch(sb, entities)
-    love.graphics.setColor(255, 255, 255, 255)
-
     sb:bind()
     sb:clear()
     for i = 1, #entities do
@@ -104,13 +102,10 @@ function OrderedDrawingSystem:draw_background()
         self.spriteBatchesAreDirty = false
     end
 
-    love.graphics.setColor(255, 255, 255, 255)
     love.graphics.draw(self.spritebatches.bg)
 end
 
 function OrderedDrawingSystem:draw_foreground()
-    love.graphics.setColor(255, 255, 255, 255)
-    --love.graphics.setColor(255, 100, 100, 255)
     love.graphics.draw(self.spritebatches.fg)
 end
 

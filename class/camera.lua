@@ -65,18 +65,15 @@ function Camera:move_toward(player)
     if y1 < self.position.y then
         local distance = math.abs(self.position.y - y1)
 
-        --if -distance < self.velocity.y and player.onPlatform then
-        if player.onPlatform then
+        if player.isOnPlatform then
             -- Move the camera smoothly up to the player
             self.velocity.y = -distance * .25
         end
     elseif y2 > self.position.y + self.box.h - 1 then
         local distance = math.abs(y2 - (self.position.y + self.box.h - 1))
 
-        --if distance > self.velocity.y then
-            -- Move the camera locked with the player
-            self.velocity.y = distance
-        --end
+        -- Move the camera locked with the player
+        self.velocity.y = distance
     end
 end
 

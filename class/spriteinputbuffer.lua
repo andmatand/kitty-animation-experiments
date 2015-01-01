@@ -40,7 +40,7 @@ function SpriteInputBuffer:process_direction_event(direction, amount)
     local velocityDelta = {x = .1 * math.abs(normalizedAmount)}
 
     -- If the sprite is in the air (not standing on a platform)
-    if not self.sprite.onPlatform then
+    if not self.sprite.isOnPlatform then
         -- Decrease the amount of control
         velocityDelta.x = velocityDelta.x * .5
     end
@@ -66,7 +66,7 @@ function SpriteInputBuffer:process_direction_event(direction, amount)
         self.sprite.moved = true
 
     -- Down
-    elseif direction == 3 and self.sprite.onPlatform then
+    elseif direction == 3 and self.sprite.isOnPlatform then
         self.sprite.isCrouching = true
     end
 end

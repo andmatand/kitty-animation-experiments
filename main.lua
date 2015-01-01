@@ -47,14 +47,14 @@ function restart()
     systems.discoPlatform = DiscoPlatformSystem()
     systems.playerPhysics = PlayerPhysicsSystem()
     systems.star = StarSystem()
-    systems.suspensionPlatform = SuspensionPlatformSystem()
+    systems.suspensiisOnPlatform = SuspensionPlatformSystem()
     systems.texturedPlatform = TexturedPlatformSystem()
     systems.orderedDrawing = OrderedDrawingSystem()
 
     -- Assign explicit update-order to systems that require it
     systemUpdateOrderMap = {
         systems.playerPhysics,
-        systems.suspensionPlatform}
+        systems.suspensiisOnPlatform}
 
     -- Assign arbitrary update-order to any remaining systems 
     for _, system in pairs(systems) do
@@ -101,7 +101,7 @@ function restart()
 
     for i = 1, #systems.discoPlatform.entities do
         local e = systems.discoPlatform.entities[i]
-        systems.suspensionPlatform:add_entity(e)
+        systems.suspensiisOnPlatform:add_entity(e)
         e.room = room
 
         table.insert(room.platforms, e)
@@ -188,19 +188,24 @@ function love.update(dt)
         frames = frames + 1
         timeAccumulator = timeAccumulator - stepTime
 
-        -- Pre-update all systems
-        for _, system in pairs(systems) do
-            system:pre_update()
-        end
-
         -- Process Input
         for i = 1, #room.sprites do
             room.sprites[i]:process_input()
         end
 
+        -- Pre-update all systems
+        for _, system in pairs(systems) do
+            system:pre_update()
+        end
+
         -- Update all systems
         for i = 1, #systemUpdateOrderMap do
             systemUpdateOrderMap[i]:update()
+        end
+
+        -- Post-update all systems
+        for _, system in pairs(systems) do
+            system:post_update()
         end
 
         -- Update sprites (TODO make this into a system)
@@ -236,8 +241,6 @@ function love.keypressed(key)
 end
 
 function draw_sprites()
-    love.graphics.setColor(255, 255, 255)
-
     for i = 1, #room.sprites do
         local sprite = room.sprites[i]
 
@@ -268,7 +271,7 @@ function draw_ground()
     local x1 = cameraPos.x - (cameraPos.x % quadWidth)
     local x2 = cameraPos.x + BASE_SCREEN_W
 
-    love.graphics.setColor(255, 255, 255, 255)
+    love.graphics.setColor(255, 255, 255)
     for x = x1, x2, quadWidth do
         love.graphics.draw(TEXTURE, GROUND_QUAD, x, BASE_SCREEN_H - 2)
     end
@@ -284,6 +287,7 @@ function draw_canvas_to_screen(shader)
         love.graphics.setShader(shader)
     end
 
+    love.graphics.setColor(255, 255, 255)
     love.graphics.draw(CANVAS, 0, 0, 0, GRAPHICS_SCALE, GRAPHICS_SCALE)
 
     if shader then
@@ -296,38 +300,52 @@ end
 function love.draw()
     determine_scale_and_letterboxing()
 
+    -- Clear the screen
+    love.graphics.setCanvas()
     love.graphics.setBackgroundColor(0, 0, 0)
     love.graphics.clear()
 
-    -- Draw the platforms and stars on the canvas
+    -- Draw everything to the canvas, but with the disco platforms black
     love.graphics.push()
     love.graphics.setCanvas(CANVAS)
     love.graphics.setBackgroundColor(10, 10, 10, 255)
+    love.graphics.setColor(255, 255, 255)
     love.graphics.clear()
     systems.star:draw()
     camera:translate()
-    systems.discoPlatform:draw()
-    love.graphics.pop()
-
-    -- Draw the canvas (with disco platforms and stars on it) on the screen,
-    -- with the bloom shader
-    draw_canvas_to_screen(shaders.bloom)
-
-    -- Draw the textured platforms, ground, and sprites on the canvas
-    love.graphics.push()
-    love.graphics.setCanvas(CANVAS)
-    love.graphics.setBackgroundColor(0, 0, 0, 0)
-    love.graphics.clear()
-    camera:translate()
-    systems.texturedPlatform:draw()
     draw_ground()
+    systems.texturedPlatform:draw()
+    systems.discoPlatform:draw(true)
+    love.graphics.setColor(255, 255, 255)
     systems.orderedDrawing:draw_background()
     draw_sprites()
     systems.orderedDrawing:draw_foreground()
     love.graphics.pop()
 
-    -- Draw the sprite canvas on the screen
+    -- Draw the canvas to the screen
     draw_canvas_to_screen()
+
+    -- Draw the disco platforms on the screen, and redraw the things that are
+    -- supposed to be in front of the disco platforms, but draw them in all
+    -- black
+    love.graphics.push()
+    love.graphics.setCanvas(CANVAS)
+    love.graphics.setBackgroundColor(0, 0, 0)
+    love.graphics.clear()
+    camera:translate()
+    systems.discoPlatform:draw()
+    love.graphics.setColor(0, 0, 0)
+    systems.orderedDrawing:draw_background()
+    draw_sprites()
+    systems.orderedDrawing:draw_foreground()
+    love.graphics.setColor(255, 255, 255)
+    love.graphics.pop()
+
+    -- Draw the canvas (with disco platforms on it) on the screen, with the
+    -- bloom shader, using additive blend mode
+    love.graphics.setBlendMode('additive')
+    draw_canvas_to_screen(shaders.bloom)
+    love.graphics.setBlendMode('alpha')
 
     -- Display FPS
     love.graphics.setColor(255, 255, 255)

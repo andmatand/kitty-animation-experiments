@@ -10,12 +10,10 @@ function Kitty:new()
                          size = {w = self.skin:get_width() - 2,
                                  h = self.skin:get_height() - 1}}
     self.blinkTimer = Timer(love.math.random(1, 6))
-    self.prevState = {}
 end
 
 function Kitty:post_update_animation_state()
     self.moved = false
-    self.prevState.onPlatform = self.onPlatform
 end
 
 function anim_is_playing(skin, animKey)
@@ -67,7 +65,7 @@ function Kitty:update_animation_state(dt)
         end
     end
 
-    if not self.prevState.onPlatform and self.onPlatform then
+    if not self.prevState.isOnPlatform and self.isOnPlatform then
         if self.skin:get_anim() == 'walk' then
             self.skin:set_anim('land_walk')
         else
@@ -79,7 +77,7 @@ function Kitty:update_animation_state(dt)
         self.skin:set_anim('default')
     end
 
-    if self.onPlatform then
+    if self.isOnPlatform then
         -- If we are over the edge of the platform
         if self:is_over_edge_of_platform() then
             if self.skin:get_anim() == 'land' then
@@ -96,7 +94,7 @@ function Kitty:update_animation_state(dt)
         self.skin.currentAnimation:rewind()
     end
 
-    if self.isCrouching and self.onPlatform and not self.moved then
+    if self.isCrouching and self.isOnPlatform and not self.moved then
         if self:is_over_edge_of_platform() then
             self.skin:set_anim('crouch_cliff')
         else

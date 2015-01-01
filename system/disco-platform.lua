@@ -96,7 +96,7 @@ function DiscoPlatformSystem:init_random()
     end
 end
 
-function DiscoPlatformSystem:draw()
+function DiscoPlatformSystem:draw(black)
     love.graphics.setLineWidth(1)
     love.graphics.setLineStyle('rough')
 
@@ -131,7 +131,11 @@ function DiscoPlatformSystem:draw()
             h = h - 1
         end
 
-        love.graphics.setColor(platform.color)
+        if black then
+            love.graphics.setColor(0, 0, 0)
+        else
+            love.graphics.setColor(platform.color)
+        end
         love.graphics.rectangle(drawMode, x, y, w, h)
 
     end

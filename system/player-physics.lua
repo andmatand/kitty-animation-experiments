@@ -16,6 +16,13 @@ function PlayerPhysicsSystem:new()
     }
 end
 
+function PlayerPhysicsSystem:add_entity(e)
+    PlayerPhysicsSystem.super.add_entity(self, e)
+
+    e.prevState = {}
+    e.offPlatformTime = 0
+end
+
 function PlayerPhysicsSystem:check_for_y_collision(e, endY)
     local startY = e.position.y
 
@@ -54,11 +61,11 @@ function PlayerPhysicsSystem:check_for_y_collision(e, endY)
         end
 
         if hit then
-            -- Move the e to this position
+            -- Move the entity to this position
             e.position.y = y
 
-            -- Mark the e as being on a platform
-            e.onPlatform = true
+            -- Mark the entity as being on a platform
+            e.isOnPlatform = true
 
             -- If the e is falling too fast to survive the impact
             if e.velocity.y >= PlayerPhysicsSystem.MAX_VELOCITY_Y then
@@ -122,11 +129,6 @@ function PlayerPhysicsSystem:apply_velocity()
             -- Apply Y-axis velocity
             e.position.y = newY
         end
-
-        -- If the entity is still moving downward (it didn't collide)
-        if e.velocity.y >= 1 then
-            e.onPlatform = false
-        end
     end
 end
 
@@ -134,7 +136,21 @@ function PlayerPhysicsSystem:pre_update()
     for i = 1, #self.entities do
         local e = self.entities[i]
 
+        e.prevState.isOnPlatform = e.isOnPlatform
+
+        e.isOnPlatform = false
+    end
+end
+
+function PlayerPhysicsSystem:post_update()
+    for i = 1, #self.entities do
+        local e = self.entities[i]
+
         e.fallingThroughPlatform = false
+
+        if e.prevState.isOnPlatform and not e.isOnPlatform then
+            e.offPlatformTime = love.timer.getTime()
+        end
     end
 end
 

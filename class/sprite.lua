@@ -39,17 +39,26 @@ function Sprite:is_on_platform(testPosition, platform)
 end
 
 function Sprite:fall()
-    if not self.onPlatform then return end
+    if not self.isOnPlatform then return end
 
-    self.onPlatform = false
+    self.isOnPlatform = false
     self.fallingThroughPlatform = true
 end
 
 function Sprite:jump()
-    if not self.onPlatform or self.hitPlatformTooHard then return end
+    if self.hitPlatformTooHard then
+        return
+    end
 
+    if not self.isOnPlatform then
+        local timeOffPlatform = love.timer.getTime() - self.offPlatformTime
 
-    self.onPlatform = false
+        if timeOffPlatform > .1 then
+            return
+        end
+    end
+
+    self.isOnPlatform = false
 
     self.velocity.y = -2
     self.moved = true
