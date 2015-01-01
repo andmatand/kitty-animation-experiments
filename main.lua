@@ -160,7 +160,7 @@ end
 
 function love.gamepadaxis(joystick, axis, value)
     -- If your pet cat didn't accidentally bump the controller
-    if value > AXIS_DEADZONE then
+    if math.abs(value) > AXIS_DEADZONE then
         -- Set the current joystick to this one
         JOYSTICK = joystick
     end
