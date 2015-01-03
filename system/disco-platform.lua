@@ -125,10 +125,8 @@ function DiscoPlatformSystem:draw(black)
             drawMode = 'line'
             platform.fillAlpha = 0
             platform.color[4] = 255
-            x = x + 1
-            y = y + 1
-            w = w - 1
-            h = h - 1
+            x = x + .5
+            y = y + .5
         end
 
         if black then

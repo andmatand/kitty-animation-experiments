@@ -40,6 +40,7 @@ function restart()
         0, 48,
         6, 5,
         TEXTURE:getWidth(), TEXTURE:getHeight())
+    WATER_QUADS = create_quads(TEXTURE, {x = 0, y = 40}, {w = 8, h = 8}, 3)
 
     soundSources = {jump = love.audio.newSource('asset/jump.wav')}
 
@@ -124,6 +125,8 @@ function restart()
 
     -- Create the camera
     camera = Camera()
+    camera:set_player(room.sprites[1])
+    camera:warp_to_player()
 
 
     SIM_HZ = 60
@@ -164,6 +167,8 @@ function love.gamepadaxis(joystick, axis, value)
         -- Set the current joystick to this one
         JOYSTICK = joystick
     end
+
+    VIRTUAL_GAMEPAD:axis_moved(axis, value)
 end
 
 function love.gamepadpressed(joystick, button)
@@ -217,7 +222,7 @@ function love.update(dt)
             sprite.skin:update(stepTime)
         end
 
-        camera:update(room.sprites[1])
+        camera:update()
     end
 
     if love.timer.getTime() >= frameTimer + 1 then
@@ -312,7 +317,7 @@ function love.draw()
     love.graphics.setColor(255, 255, 255)
     love.graphics.clear()
     systems.star:draw()
-    camera:translate()
+    camera:transform()
     draw_ground()
     systems.texturedPlatform:draw()
     systems.discoPlatform:draw(true)
@@ -332,7 +337,7 @@ function love.draw()
     love.graphics.setCanvas(CANVAS)
     love.graphics.setBackgroundColor(0, 0, 0)
     love.graphics.clear()
-    camera:translate()
+    camera:transform()
     systems.discoPlatform:draw()
     love.graphics.setColor(0, 0, 0)
     systems.orderedDrawing:draw_background()

@@ -39,11 +39,9 @@ end
 
 function StarSystem:draw()
     love.graphics.push()
-    local cameraPos = camera:get_position()
-    love.graphics.translate(math.floor(-cameraPos.x * .5),
-                            math.floor(-cameraPos.y * .5))
+    camera:transform(.5)
     love.graphics.setPointStyle('rough')
-    love.graphics.setPointSize(1)
+    love.graphics.setPointSize(camera:get_zoom())
 
     for i = 1, #self.entities do
         local entity = self.entities[i]

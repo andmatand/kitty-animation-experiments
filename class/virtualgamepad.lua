@@ -34,6 +34,20 @@ function VirtualGamepad:get_axis(axis)
     return 0
 end
 
+function VirtualGamepad:axis_moved(axis, value)
+    if self:is_down('back') then
+        if axis == 'lefty' then
+            local zoom = camera:get_zoom()
+
+            if value < -AXIS_DEADZONE then
+                camera:set_zoom(zoom + 1)
+            elseif value > AXIS_DEADZONE and zoom > 1 then
+                camera:set_zoom(zoom - 1)
+            end
+        end
+    end
+end
+
 function VirtualGamepad:is_down(button)
     if JOYSTICK then
         return JOYSTICK:isGamepadDown(button)
