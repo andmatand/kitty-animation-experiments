@@ -1,7 +1,7 @@
 function love.conf(t)
     GRAPHICS_SCALE = 6
     BASE_SCREEN_W = 160
-    BASE_SCREEN_H = 100
+    BASE_SCREEN_H = 120
     t.window.width = BASE_SCREEN_W * GRAPHICS_SCALE
     t.window.height = BASE_SCREEN_H * GRAPHICS_SCALE
     t.window.title = 'kitty'
