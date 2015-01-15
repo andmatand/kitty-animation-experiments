@@ -3,6 +3,7 @@ VirtualGamepad = Object:extend()
 function VirtualGamepad:new(spriteInputBuffer)
     self.spriteInputBuffer = spriteInputBuffer
 
+    self.directionButtons = {false, false, false, false}
     self:refresh_map_reverse_lookup_cache()
 end
 
@@ -34,14 +35,14 @@ function VirtualGamepad:get_axis(axis)
     return 0
 end
 
-function VirtualGamepad:axis_moved(axis, value)
-    if self:is_down('back') then
-        if axis == 'lefty' then
-            local zoom = camera:get_zoom()
+function VirtualGamepad:direction_pushed(dir)
+    if self:is_down('back') or love.keyboard.isDown('lctrl') then
+        local zoom = camera:get_zoom()
 
-            if value < -AXIS_DEADZONE then
-                camera:set_zoom(zoom + 1)
-            elseif value > AXIS_DEADZONE and zoom > 1 then
+        if dir == 1 then -- UP
+            camera:set_zoom(zoom + 1)
+        elseif dir == 3 then -- DOWN
+            if zoom > 1 then
                 camera:set_zoom(zoom - 1)
             end
         end
@@ -103,5 +104,31 @@ function VirtualGamepad:send_directional_input()
         self.spriteInputBuffer:push({2, leftx}) -- Left
     elseif lefty > AXIS_DEADZONE then
         self.spriteInputBuffer:push({3, lefty}) -- Down
+    end
+end
+
+function VirtualGamepad:update()
+    self:update_direction_buttons()
+end
+
+function VirtualGamepad:update_direction_buttons()
+    local lefty = self:get_axis('lefty')
+
+    local dir
+    if lefty < -AXIS_DEADZONE then
+        dir = 1
+    elseif lefty > AXIS_DEADZONE then
+        dir = 3
+    end
+
+    for i = 1, 4 do
+        if dir == i then
+            if not self.directionButtons[i] then
+                self.directionButtons[i] = true
+                self:direction_pushed(i)
+            end
+        else
+            self.directionButtons[i] = false
+        end
     end
 end

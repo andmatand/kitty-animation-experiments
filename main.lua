@@ -167,8 +167,6 @@ function love.gamepadaxis(joystick, axis, value)
         -- Set the current joystick to this one
         JOYSTICK = joystick
     end
-
-    VIRTUAL_GAMEPAD:axis_moved(axis, value)
 end
 
 function love.gamepadpressed(joystick, button)
@@ -194,6 +192,7 @@ function love.update(dt)
         timeAccumulator = timeAccumulator - stepTime
 
         -- Process Input
+        VIRTUAL_GAMEPAD:update()
         for i = 1, #room.sprites do
             room.sprites[i]:process_input()
         end
