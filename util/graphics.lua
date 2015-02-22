@@ -1,16 +1,21 @@
-function set_graphics_scale()
+function set_window_scale(scale)
+    love.window.setMode(BASE_SCREEN_W * scale, BASE_SCREEN_H * scale)
+end
+
+function scale_to_window()
     -- Get the window resolution
     local w, h = love.window.getDimensions()
 
     -- Find the largest scale that will fit within the window
     GRAPHICS_SCALE = 1
     while BASE_SCREEN_W * (GRAPHICS_SCALE + 1) <= w and
-          BASE_SCREEN_H * (GRAPHICS_SCALE + 1) <= h do
+          BASE_SCREEN_H * (GRAPHICS_SCALE + 1) <= h
+    do
         GRAPHICS_SCALE = GRAPHICS_SCALE + 1
     end
 end
 
-function set_graphics_offset()
+function letterbox_to_window()
     -- Get the window resolution
     local w, h = love.window.getDimensions()
 
@@ -22,8 +27,8 @@ function set_graphics_offset()
 end
 
 function determine_scale_and_letterboxing()
-    set_graphics_scale()
-    set_graphics_offset()
+    scale_to_window()
+    letterbox_to_window()
 end
 
 function set_fullscreen(enable)
@@ -32,8 +37,6 @@ function set_fullscreen(enable)
     else
         love.window.setFullscreen(false)
     end
-
-    determine_scale_and_letterboxing()
 end
 
 function align_to_grid(position)

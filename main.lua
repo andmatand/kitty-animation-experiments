@@ -17,6 +17,7 @@ require('system.player-physics')
 
 function love.load()
     love.mouse.setVisible(false)
+    love.keyboard.setKeyRepeat(false)
     love.graphics.setDefaultFilter('nearest', 'nearest')
     set_fullscreen(false)
 
@@ -233,6 +234,17 @@ function love.update(dt)
 end
 
 function love.keypressed(key)
+    if love.keyboard.isDown('lctrl', 'rctrl') then
+        if key == '-' and GRAPHICS_SCALE > 1 then
+            set_window_scale(GRAPHICS_SCALE - 1)
+            return
+        elseif key == '+' or key == '=' then
+            set_window_scale(GRAPHICS_SCALE + 1)
+            return
+        end
+
+    end
+
     if key == 'f11' then
         set_fullscreen(not love.window.getFullscreen())
     else
