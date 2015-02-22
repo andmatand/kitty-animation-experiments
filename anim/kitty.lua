@@ -1,7 +1,7 @@
 require('class.animationtemplate')
 require('util.anim')
 
-local size = {w = 7, h = 5}
+local size = {w = 6, h = 5}
 local quads = create_quads(TEXTURE, {x = 0, y = 0}, size, 13)
 
 local templates = {}
