@@ -14,6 +14,12 @@ end
 
 function Kitty:post_update_animation_state()
     self.moved = false
+
+    if self.velocity.x ~= 0 then
+        if self.skin:get_anim() == 'walk' then
+            self.skin.currentAnimation:set_speed(math.abs(self.velocity.x))
+        end
+    end
 end
 
 function anim_is_playing(skin, animKey)
@@ -55,7 +61,7 @@ function Kitty:update_animation_state(dt)
             self.skin:set_anim('walk')
         end
 
-        TURN_VELOCITY = PlayerPhysicsSystem.MAX_VELOCITY_X * .5
+        TURN_VELOCITY = PlayerPhysicsSystem.MAX_VELOCITY_X * .25
 
         -- It we are skidding from changing direction suddenly while moving
         if (self.dir == 2 and self.velocity.x <= -TURN_VELOCITY or

@@ -7,6 +7,7 @@ function Animation:new(animationTemplate)
     self.loop = animationTemplate.loop
 
     self.isStopped = false
+    self.speed = 1
     self:set_frame_index(1)
 end
 
@@ -47,12 +48,18 @@ function Animation:step_forward()
     end
 end
 
+function Animation:set_speed(value)
+    self.speed = value
+end
+
 function Animation:stop()
     self.isStopped = true
 end
 
 function Animation:update(dt)
     if not self.isStopped then
+        dt = dt * self.speed
+
         if self.currentFrame.timer:update(dt) then
             self:step_forward()
         end
