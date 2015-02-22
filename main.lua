@@ -19,7 +19,7 @@ function love.load()
     love.mouse.setVisible(false)
     love.keyboard.setKeyRepeat(false)
     love.graphics.setDefaultFilter('nearest', 'nearest')
-    set_fullscreen(false)
+    set_fullscreen(true)
 
     CANVAS = love.graphics.newCanvas(BASE_SCREEN_W, BASE_SCREEN_H)
 
