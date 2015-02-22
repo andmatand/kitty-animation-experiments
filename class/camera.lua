@@ -137,7 +137,7 @@ function Camera:draw()
     love.graphics.pop()
 end
 
-function Camera:update(player)
+function Camera:update()
     self:follow_player()
     --self:screen_scroll(player)
     self:do_physics()
